@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mónaco Onboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@600;800&family=Saira+Semi+Condensed:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app"></div>
+
+<div id="timing" class="hud panel">
+  <div class="row"><span class="k">Vuelta</span><span class="v" id="lapNo">1</span></div>
+  <div class="row big"><span class="k">Tiempo</span><span class="v" id="lapTime">0:00.000</span></div>
+  <div class="row"><span class="k">Última</span><span class="v" id="lastLap">—</span></div>
+  <div class="row best"><span class="k">Mejor</span><span class="v" id="bestLap">—</span></div>
+  <div class="row"><span class="k">Delta</span><span class="v" id="delta">—</span></div>
+  <div class="secs" id="secHud"></div>
+</div>
+<div id="corner" class="hud panel"><small id="cornerNo">T1</small><span id="cornerName">Recta de boxes</span></div>
+<div id="lights" class="hud panel" hidden>
+  <div class="pod"><i></i><i></i></div><div class="pod"><i></i><i></i></div><div class="pod"><i></i><i></i></div><div class="pod"><i></i><i></i></div><div class="pod"><i></i><i></i></div>
+</div>
+<div id="mapbox" class="hud panel"><canvas id="minimap" width="340" height="340"></canvas></div>
+<div id="cluster" class="hud panel">
+  <div id="speed">0<small>KM/H</small></div>
+  <div id="gearbox"><div id="gear">N</div><small>MARCHA</small></div>
+  <div id="rpm"></div>
+  <div id="pedals"><div><b id="thrBar"></b></div><div><b id="brkBar"></b></div></div>
+</div>
+<div id="tools" class="hud" hidden><button id="bMenu" type="button">❚❚ Menú</button><button id="bCam" type="button">Cámara<small id="camName">Onboard TV</small></button><button id="bRestart" type="button">↺ Reiniciar</button></div>
+<div id="keys" class="hud"><kbd>C</kbd> cámara · <kbd>R</kbd> volver a pista · <kbd>Esc</kbd> menú · <kbd>Backspace</kbd> reiniciar vuelta · <kbd>M</kbd> sonido</div>
+<div id="banner" class="hud" style="opacity:0"><div class="t1" id="b1"></div><div class="t2" id="b2"></div></div>
+<div id="split" class="hud" style="opacity:0"><span class="sn" id="spN">S1</span><span class="st" id="spT">0.000</span><span class="sd" id="spD"></span></div>
+<div id="wrongway" class="hud" hidden>Dirección contraria</div>
+<div id="finish" hidden><div class="card" role="dialog" aria-labelledby="fTime">
+  <div class="eyebrow"><span class="flag"><i></i><i></i></span><span id="fWho">Bandera a cuadros</span></div>
+  <div id="fTime">0:00.000</div><div class="fsecs" id="secFin"></div><div id="fPos"></div>
+  <div class="board"><h3>Tus mejores vueltas</h3><table class="rank" id="rankFinish"></table></div>
+  <div id="saveNote"></div>
+  <div class="btnrow"><button id="fAgain" class="primary" type="button">Correr otra vez</button><button id="fMenu" type="button">Menú</button></div>
+</div></div>
+
+<div id="touch" hidden>
+  <div class="tb" id="tL">◀</div><div class="tb" id="tR">▶</div>
+  <div class="tb" id="tB">FRENO</div><div class="tb" id="tG">GAS</div>
+  <div class="tb" id="tC">CAM</div><div class="tb" id="tP">II</div>
+</div>
+
+<div id="menu">
+  <div class="card">
+    <div class="eyebrow"><span class="flag"><i></i><i></i></span>Circuit de Monaco · Monte-Carlo</div>
+    <h1>Mónaco<span>Onboard</span></h1>
+    <div class="facts">
+      <div><b>3,34</b><span>km por vuelta</span></div>
+      <div><b>19</b><span>curvas</span></div>
+      <div><b>42 m</b><span>de subida</span></div>
+    </div>
+    <p class="lede">Una vuelta tranquila por el trazado real del Principado, desde el casco: la subida de Sainte Dévote al Casino, la bajada a la horquilla, el túnel junto al mar y el puerto lleno de yates. Calles, edificios y tribunas en su lugar real. Manejo sencillo, sin trompos.</p>
+    <div class="namefield"><label for="pname">Tu nombre de piloto</label><input id="pname" type="text" maxlength="16" autocomplete="nickname" placeholder="Ej. PILOTO 1"></div>
+    <div class="opts">
+      <label class="opt"><input type="checkbox" id="optBrake" checked> Frenado asistido</label>
+      <label class="opt"><input type="checkbox" id="optSteer" checked> Dirección asistida</label>
+      <label class="opt"><input type="checkbox" id="optSound" checked> Sonido del motor</label>
+      <label class="opt"><input type="checkbox" id="optStart" checked> Largada con semáforo</label>
+      <label class="opt"><input type="checkbox" id="optAuto" checked> Resolución automática</label>
+      <label class="sel">Cámara<select id="optCam"><option value="0">Cockpit (ojos del piloto)</option><option value="1" selected>Onboard TV (sobre el casco)</option><option value="2">T-cam</option><option value="3">Exterior</option></select></label>
+      <label class="sel">Calidad gráfica<select id="optQ"><option value="2">Alta</option><option value="1">Media</option><option value="0">Baja</option></select></label>
+    </div>
+    <div class="btnrow"><button id="go" disabled>Salir a pista</button><button id="restart" type="button" hidden>Reiniciar desde la grilla</button></div>
+    <div class="board"><h3>Tus mejores vueltas</h3><table class="rank" id="rankMenu"></table><div class="legend">A = vuelta con ayudas de manejo.</div></div>
+    <div id="loading">Construyendo el Principado…</div>
+    <div id="perfInfo" class="hint" hidden></div>
+    <div class="ctrls">
+      <kbd>↑ / W</kbd><span>Acelerar</span>
+      <kbd>↓ / S / Espacio</kbd><span>Frenar (mantener detenido = reversa)</span>
+      <kbd>← → / A D</kbd><span>Girar</span>
+      <kbd>C · R · M · P</kbd><span>Cámara · volver a pista · sonido · pausa</span>
+    </div>
+    <p class="credits">Datos del mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores de OpenStreetMap</a> (ODbL) · Trazado: <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener">bacinger/f1-circuits</a> (MIT) · Proyecto no oficial, sin relación con la Fórmula 1.</p>
+  </div>
+</div>
+
+<script>if(location.protocol==='file:')document.getElementById('loading').textContent='Este juego necesita un servidor web: abrilo con python -m http.server 8000 y entrá a http://localhost:8000 (ver README).';</script>
+<script src="vendor/three.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

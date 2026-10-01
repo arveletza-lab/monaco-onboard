@@ -1,0 +1,16 @@
+# material de origen y archivos de trabajo locales
+_origen/
+node_modules/
+package.json
+package-lock.json
+
+# entradas e intermedios de tools/prep.py
+tools/*.geojson
+tools/*.osm.pbf
+tools/osm.json
+tools/osm2.json
+tools/mask.png
+__pycache__/
+
+.DS_Store
+Thumbs.db
