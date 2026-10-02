@@ -188,3 +188,36 @@ h1 span{display:block;color:var(--red);font-size:.46em;letter-spacing:.12em;marg
 .credits{margin:0;font-size:11px;line-height:1.5;color:var(--muted);letter-spacing:.02em;}
 .credits a{color:inherit;text-decoration:underline;text-underline-offset:2px;}
 .credits a:hover,.credits a:focus-visible{color:var(--fg);}
+
+/* phones: compact HUD and touch controls so the track stays visible */
+@media (max-width:760px),(max-height:560px){
+  #timing{left:8px;top:calc(8px + env(safe-area-inset-top,0px));min-width:118px;border-left-width:3px;}
+  #timing .row{padding:1px 8px;gap:10px;}
+  #timing .k{font-size:9px;letter-spacing:.1em;}
+  #timing .v{font-size:12px;}
+  #timing .big .v{font-size:17px;}
+  #timing .secs{padding:3px 6px 4px;gap:2px;}
+  .sec .lab{font-size:8px;} .sec .bar{height:3px;} .sec .tm{font-size:10px;}
+  #mapbox{right:8px;top:calc(8px + env(safe-area-inset-top,0px));padding:4px;}
+  #minimap{width:78px;height:78px;}
+  #corner{top:calc(8px + env(safe-area-inset-top,0px));bottom:auto;font-size:13px;padding:3px 10px;border-bottom-width:2px;}
+  #corner small{display:none;}
+  #split{top:calc(36px + env(safe-area-inset-top,0px));}
+  #split .sn{font-size:13px;padding:2px 6px;} #split .st{font-size:16px;padding:1px 8px;} #split .sd{font-size:11px;padding:3px 6px;}
+  #lights{top:calc(40px + env(safe-area-inset-top,0px));gap:6px;padding:6px 8px;}
+  #lights .pod{width:16px;gap:4px;} #lights .pod i{width:16px;height:16px;}
+  #cluster{right:auto;left:50%;transform:translateX(-50%);top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));min-width:0;padding:4px 10px 5px;gap:2px 8px;}
+  #speed{font-size:28px;min-width:2.6ch;} #speed small,#gearbox small{font-size:8px;margin-top:2px;letter-spacing:.1em;}
+  #gear{font-size:20px;width:22px;border-width:1px;}
+  #rpm{height:4px;gap:2px;} #pedals{display:none;}
+  #tools{left:8px;gap:4px;} #tools button{font-size:10px;padding:3px 6px;} #tools button small{font-size:8px;}
+  #banner .t1{font-size:14px;} #banner .t2{font-size:32px;}
+  #wrongway{font-size:18px;padding:3px 12px;}
+  #touch .tb{font-size:14px;border-radius:10px;}
+  #tL{left:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:60px;height:60px;}
+  #tR{left:78px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:60px;height:60px;}
+  #tG{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:64px;height:86px;}
+  #tB{right:82px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:64px;height:60px;}
+  #tP{right:10px;top:auto;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:40px;height:28px;font-size:11px;}
+  #tC{right:56px;top:auto;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:40px;height:28px;font-size:11px;}
+}
