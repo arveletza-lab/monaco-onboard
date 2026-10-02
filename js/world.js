@@ -253,6 +253,11 @@ function buildBarriers(SCH){
   const n=ESC.length-4,p=ESC[n],q=ESC[n+1];const l=Math.hypot(q[0]-p[0],q[1]-p[1]),dx=(q[0]-p[0])/l,dz=(q[1]-p[1])/l;const rx=-dz,rz=dx;
   const lx=p[0]+rx*(ESC_W/2+1),lz=p[1]+rz*(ESC_W/2+1),ly=heightAt(lx,lz);const th=Math.atan2(-dx,-dz);
   metalB.box(lx,lz,ly,ly+3.2,.06,.06,th,lin('#2a2c30'));metalB.box(lx,lz,ly+2.4,ly+3.5,.2,.14,th,lin('#16181b'));
+  // the barrier between the chicane and the escape road: red and orange blocks, a taller nose facing the cars, red and white ones at the exit
+  {const bar=[];let acc=0;for(let k=0;k<ESC.length-1;k++){const A=ESC[k],B=ESC[k+1];const l=Math.hypot(B[0]-A[0],B[1]-A[1]),dx=(B[0]-A[0])/l,dz=(B[1]-A[1])/l;
+    for(;acc<l;acc+=1.05){const x=A[0]+dx*acc+dz*(ESC_W/2+.25),z=A[1]+dz*acc-dx*(ESC_W/2+.25);const n=nearest(x,z,30);if(!n)continue;const lat=(x-SX[n.i])*RXa[n.i]+(z-SZ[n.i])*RZa[n.i];if(lat<HW+.4)continue;bar.push([x,z,Math.atan2(dx,dz),lerp(A[2],B[2],acc/l)+.03]);}acc-=l;}
+   bar.forEach(([x,z,th,y],k)=>{const nose=k<2,exit=k>=bar.length-6;const c=exit?(k%2?lin('#f2f2ee'):lin('#d4202a')):(k%2?lin('#f07a12'):lin('#c8261e'));
+    teamB.box(x,z,y,y+(nose?1.5:1.15),.25,.5,th,c);teamB.box(x,z,y+(nose?1.5:1.15),y+(nose?1.58:1.2),.26,.5,th,lin('#f2f2ee'));});}
   for(const [h,c] of [[3.25,0x22ff66],[2.7,0x3a0b0b]]){const lamp=new THREE.Mesh(new THREE.CircleGeometry(.09,12),new THREE.MeshBasicMaterial({color:c,toneMapped:false,side:THREE.DoubleSide}));lamp.position.set(lx+dx*.15,ly+h,lz+dz*.15);lamp.rotation.y=th;scene.add(lamp);}}
  // Sainte Dévote: wall of dark boards at the end of the run-off, as seen from the start straight
  if(sdWall.length){const wb=new Batch();for(const [i,side] of sdWall){const j=mod(i+1);if(!SDZ[j])continue;const sd=side>0?1:0;const a=P(i,side*(HW+EXA[sd][i]+.55)),b=P(j,side*(HW+EXA[sd][j]+.55));const u0=i*DS/28,u1=(i+1)*DS/28;
@@ -269,7 +274,7 @@ function buildTrack(){
   for(const r of runs(pred)){const mid=mod(r[0]+(r[1]>>1));const bl=blueAt.some(c=>Math.min(mod(mid-c),mod(c-mid))<30);strip(r[0],r[1],i=>side<0?[P(i,-HW-.2,.045),P(i,-HW+1.1,.045)]:[P(i,HW-1.1,.045),P(i,HW+.2,.045)],bl?3:2,bl?kmatB:kmat);}}
  // barriers with ad boards
  const SCH=new Array(N).fill('green');
- for(const [a,b,n] of[[104,131,'green'],[131,145,'bluegreen'],[145,155,'navy'],[155,5,'black'],[5,19,'maroon'],[19,33,'black'],[33,39,'white'],[39,46,'navy'],[46,52,'blackw'],[52,62,'darkgreen'],[62,68,'navy'],[68,92,'purple'],[92,98,'blackw'],[98,104,'yellow']])rangeIdx(cpIdx(a),cpIdx(b)).forEach(i=>SCH[i]=n);
+ for(const [a,b,n] of[[104,131,'green'],[131,145,'bluegreen'],[145,155,'navy'],[155,5,'black'],[5,19,'maroon'],[19,33,'black'],[33,39,'white'],[39,46,'navy'],[46,52,'blackw'],[52,58,'chicane'],[58,62,'darkgreen'],[62,68,'navy'],[68,92,'purple'],[92,98,'blackw'],[98,104,'yellow']])rangeIdx(cpIdx(a),cpIdx(b)).forEach(i=>SCH[i]=n);
  buildBarriers(SCH);
  // foam tyre barriers (hairpin, chicane escape, Sainte Dévote) and striped bollards at Tabac
  const OR=lin('#f07a12'),YE=lin('#f2c200');

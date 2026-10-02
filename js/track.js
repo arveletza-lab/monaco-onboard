@@ -46,11 +46,11 @@ const CPI=CORNERS.map(c=>cpIdx(c[0]));
 rangeIdx(idxXY(390,470,39),idxXY(282,187,46)).forEach(i=>TUN[i]=1);
 rangeIdx(cpIdx(112),cpIdx(127)).forEach(i=>PIT[i]=1);
 const P=(i,d,h)=>[SX[i]+RXa[i]*d,SY[i]+(h||0),SZ[i]+RZa[i]*d];
-// Nouvelle Chicane has no armco next to the kerbs: open asphalt run-off on both sides, polystyrene blocks further out
+// Nouvelle Chicane: armco on the harbour side; on the outside, run-off up to the barrier that separates the escape road (set below)
 const EXA=[new Float32Array(N),new Float32Array(N)];
 const CHI=new Uint8Array(N);const STR=new Uint8Array(N);
 {const r=rangeIdx(mod(cpIdx(52)-6),cpIdx(57));const L=r.length;const raw=[new Float32Array(N),new Float32Array(N)];
- r.forEach((i,k)=>{CHI[i]=1;const t=Math.min(1,k/8,(L-1-k)/8);const e=sstep(0,1,t);let kk=0;for(let q=-6;q<=6;q++)kk+=K[mod(i+q)];raw[0][i]=8*e;raw[1][i]=8*e;});
+ r.forEach((i,k)=>{CHI[i]=1;const t=Math.min(1,k/8,(L-1-k)/8);const e=sstep(0,1,t);let kk=0;for(let q=-6;q<=6;q++)kk+=K[mod(i+q)];raw[0][i]=0;raw[1][i]=0;});
  for(const sd of[0,1])for(const i of r){let a=0,n=0;for(let q=-6;q<=6;q++){a+=raw[sd][mod(i+q)];n++;}EXA[sd][i]=a/n;}}
 rangeIdx(cpIdx(104),cpIdx(131)).forEach(i=>STR[i]=1);
 const SDZ=new Uint8Array(N);let SD_OUT=0;
@@ -59,17 +59,22 @@ const SDZ=new Uint8Array(N);let SD_OUT=0;
 const EXMAX=i=>Math.max(EXA[0][i],EXA[1][i]);
 // Nouvelle Chicane escape road: straight on from the tunnel exit past turn 10, then a left curve that rejoins the
 // harbour road after turn 11 (cars that miss the chicane go this way). ESC = centreline points [x, z, y].
-const ESC_W=12;
-const ESC=(()=>{const a=mod(cpIdx(52)-9),j=mod(cpIdx(57)+11);const tx=TXa[a],tz=TZa[a];
- const L=Math.abs((SX[j]+12-SX[a])/tx); // the straight ends 12 m short (east) of the rejoin point
- const pts=[];for(let s=0;s<=L;s+=4)pts.push([SX[a]+tx*s,SZ[a]+tz*s]);
- const e=[SX[a]+tx*L,SZ[a]+tz*L],c=[e[0]+tx*12,e[1]+tz*12];
- for(let k=1;k<=10;k++){const t=k/10;pts.push([(1-t)**2*e[0]+2*(1-t)*t*c[0]+t*t*SX[j],(1-t)**2*e[1]+2*(1-t)*t*c[1]+t*t*SZ[j]]);}
+// It starts in the middle of the road before turn 10, so a car that does not turn in carries straight on behind the barrier.
+const ESC_W=8;
+const ESC=(()=>{const a=mod(cpIdx(52)-9),j=mod(cpIdx(57)+11);const tx=TXa[a],tz=TZa[a];const s0=[SX[a]+RXa[a]*.5,SZ[a]+RZa[a]*.5],s1=[SX[j]+RXa[j]*2.5,SZ[j]+RZa[j]*2.5];
+ const L=Math.abs((s1[0]+12-s0[0])/tx); // the straight ends 12 m short (east) of the rejoin point
+ const pts=[];for(let s=0;s<=L;s+=4)pts.push([s0[0]+tx*s,s0[1]+tz*s]);
+ const e=[s0[0]+tx*L,s0[1]+tz*L],c=[e[0]+tx*12,e[1]+tz*12];
+ for(let k=1;k<=10;k++){const t=k/10;pts.push([(1-t)**2*e[0]+2*(1-t)*t*c[0]+t*t*s1[0],(1-t)**2*e[1]+2*(1-t)*t*c[1]+t*t*s1[1]]);}
  // level with the road where they overlap, just under it so the track surface stays on top
  return pts.map((p,k)=>{const n=nearest(p[0],p[1],30);const y=lerp(SY[a],SY[j],k/(pts.length-1));return [p[0],p[1],(n?Math.min(y,SY[n.i]):y)-.03];});})();
 // distance from (x, z) to the escape road centreline, with the nearest point, its height and direction
 function escAt(x,z){let best=1e9,bk=0,bt=0;for(let k=0;k<ESC.length-1;k++){const A=ESC[k],B=ESC[k+1];const dx=B[0]-A[0],dz=B[1]-A[1];const t=Math.max(0,Math.min(1,((x-A[0])*dx+(z-A[1])*dz)/(dx*dx+dz*dz)));const d=Math.hypot(A[0]+dx*t-x,A[1]+dz*t-z);if(d<best){best=d;bk=k;bt=t;}}
  const A=ESC[bk],B=ESC[bk+1],l=Math.hypot(B[0]-A[0],B[1]-A[1]);return {d:best,x:lerp(A[0],B[0],bt),z:lerp(A[1],B[1],bt),y:lerp(A[2],B[2],bt),dx:(B[0]-A[0])/l,dz:(B[1]-A[1])/l};}
+// the escape barrier: a row of energy-absorbing blocks along the inner edge of the escape road (ESC_W/2 to ESC_W/2+0.5 from its line);
+// on the track side, run-off asphalt reaches up to it
+const ESC_BAR=ESC_W/2+.5;
+rangeIdx(mod(cpIdx(52)-9),mod(cpIdx(57)+11)).forEach(i=>{const e=escAt(SX[i],SZ[i]);if((e.x-SX[i])*RXa[i]+(e.z-SZ[i])*RZa[i]<=0)return;const ex=e.d-ESC_BAR-HW-.1;EXA[1][i]=ex>.3?Math.min(ex,10):0;});
 // masks from OpenStreetMap: sea/harbour and green areas (run-length rows, 4 m cells, south to north)
 const [GX0,GY0,GC,GNX,GNY]=DATA.grid;
 function unrle(r){const m=new Uint8Array(GNX*GNY);r.forEach((row,j)=>{let x=0,v=0;for(const c of row){if(v)m.fill(1,j*GNX+x,j*GNX+x+c);x+=c;v^=1;}});return m;}

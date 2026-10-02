@@ -23,6 +23,7 @@ const BOARD={green:[['#10803f','#e7cf6e','MONACO'],['#10803f','#e7cf6e','MONTE-C
  white:[['#efefec','#c8102e','PRINCIPAUTÉ'],['#efefec','#1c2c63','PORTIER'],['#efefec','#c8102e','MONACO'],['#efefec','#1c2c63','MONTE-CARLO']],
  darkgreen:[['#0f4d2e','#ffffff','PORT HERCULE'],['#1c2f63','#ffffff','MONACO'],['#0f4d2e','#ffffff','PRINCIPAUTÉ'],['#1c2f63','#ffffff','MONTE-CARLO']],
  purple:[['#2d2a78','#ffffff','PISCINE'],['#2d2a78','#ffffff','MONACO'],['#2d2a78','#ffffff','PRINCIPAUTÉ'],['#2d2a78','#ffffff','MONTE-CARLO']],
+ chicane:[['#f3dc00','#d8231f','MONACO'],['#f3dc00','#d8231f','NOUVELLE CHICANE'],['#f3dc00','#d8231f','PRINCIPAUTÉ'],['#f3dc00','#d8231f','1929']],
  yellow:[['#f3dc00','#d8231f','LA RASCASSE'],['#f3dc00','#d8231f','MONACO'],['#f3dc00','#d8231f','PRINCIPAUTÉ'],['#f3dc00','#d8231f','1929']]};
 function wallTex(scheme){const ads=BOARD[scheme||'green'];const c=canvas(1024,128),g=c.getContext('2d');
  // armco: three pressed waves with highlights, bolts and posts (texture spans 16 m)
