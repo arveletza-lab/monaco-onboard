@@ -1,5 +1,6 @@
 # material de origen y archivos de trabajo locales
 _origen/
+_videos/
 node_modules/
 package.json
 package-lock.json

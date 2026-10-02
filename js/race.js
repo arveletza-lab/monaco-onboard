@@ -1,7 +1,7 @@
 // Race: start lights, lap and sector timing, end of lap and the lap ranking.
 
 import {$,fmt,rr} from './util.js';
-import {N,cpIdx} from './track.js';
+import {HW,N,cpIdx} from './track.js';
 import {lampMats} from './world.js';
 import {car} from './car.js';
 import {opt} from './main.js';
@@ -26,10 +26,12 @@ function renderSecInto(el,live){el.textContent='';for(let k=0;k<3;k++){const d=d
   tm.textContent=SEC.t[k]!=null?fmtS(SEC.t[k]):(live&&k===SEC.cur&&race.go&&!race.finished?fmtS(Math.max(0,car.lapT-SEC.start)):'—');d.append(lab,bar,tm);el.appendChild(d);}}
 function renderSecs(){renderSecInto($('secHud'),true);}
 function timing(dt){if(!race.go||race.finished)return;car.lapT+=dt;car.trace.push([car.i,car.lapT]);
+ // track limits: all four wheels beyond the edge of the track (kerbs count as track) cancel the lap
+ if(!car.invalid&&Math.abs(car.d)>HW+.2+1.0){car.invalid=true;showBanner('Límites de pista','Vuelta anulada');}
  if(car.i>N*.4&&car.i<N*.6)car.armed=true;
  if(!SECB)SECB=[cpIdx(3),cpIdx(66)];
  if(SEC.cur<2){const b=SECB[SEC.cur];if(prevI<b&&car.i>=b&&car.i-prevI<40){const v=car.lapT-SEC.start;SEC.start=car.lapT;closeSector(SEC.cur,v);SEC.cur++;}}
- if(prevI>N-60&&car.i<60&&car.armed){const t=car.lapT;car.last=t;const newBest=car.best==null||t<car.best;if(newBest){car.best=t;car.refLap=car.trace.slice();}car.armed=false;if(SEC.cur===2){closeSector(2,t-SEC.start);SEC.cur=3;}finishRace(t);}
+ if(prevI>N-60&&car.i<60&&car.armed){const t=car.lapT;car.last=t;const newBest=!car.invalid&&(car.best==null||t<car.best);if(newBest){car.best=t;car.refLap=car.trace.slice();}car.armed=false;if(SEC.cur===2){closeSector(2,t-SEC.start);SEC.cur=3;}finishRace(t);}
  prevI=car.i;
  if(car.refLap&&car.refLap.length){let lo=0,hi=car.refLap.length-1;while(lo<hi){const m=(lo+hi)>>1;if(car.refLap[m][0]<car.i)lo=m+1;else hi=m;}race.delta=car.lapT-car.refLap[lo][1];}else race.delta=null;}
 function showBanner(a,b,purple){$('b1').textContent=a;$('b2').textContent=b;$('b2').className='t2'+(purple?' purple':'');$('banner').style.opacity=1;race.banner=3.2;}
@@ -59,7 +61,9 @@ function renderRank(el,name){const laps=name?lapsOf(LB.rows,name):[];el.textCont
   for(const [c,v] of[['p','V'+no],['n',shortDate(r.at)],['a',r.assist?'A':''],['t',fmt(r.ms/1000)]]){const td=document.createElement('td');td.className=c;td.textContent=v;if(c==='p')td.title='Vuelta '+no;if(c==='a'&&r.assist)td.title='con ayudas de manejo';tr.appendChild(td);}el.appendChild(tr);});}
 function renderBoards(){renderRank($('rankMenu'),cleanName($('pname').value));renderRank($('rankFinish'),player);}
 async function initBoard(){LB.rows=await loadLaps();renderBoards();}
-async function finishRace(t){race.finished=true;const ms=Math.round(t*1000);const row={name:player||'PILOTO',ms,assist:!!(opt.brake||opt.steer),at:new Date().toISOString()};if(SEC.t.every(v=>v!=null))row.s=SEC.t.map(v=>Math.round(v*1000));renderSecInto($('secFin'),false);
+async function finishRace(t){race.finished=true;const ms=Math.round(t*1000);
+ if(car.invalid){renderSecInto($('secFin'),false);$('fWho').textContent=(player||'Piloto')+' · vuelta anulada';$('fTime').textContent=fmt(t);$('fTime').style.color='var(--muted)';
+  $('fPos').textContent='Saliste de los límites de pista con las cuatro ruedas, así que la vuelta no vale.';$('saveNote').textContent='El tiempo no se guarda.';renderBoards();setTimeout(()=>{$('finish').hidden=false;$('fAgain').focus();},1200);return;}const row={name:player||'PILOTO',ms,assist:!!(opt.brake||opt.steer),at:new Date().toISOString()};if(SEC.t.every(v=>v!=null))row.s=SEC.t.map(v=>Math.round(v*1000));renderSecInto($('secFin'),false);
  const prev=bestPerName(LB.rows).find(r=>sameName(r,row.name));const overPrev=bestPerName(LB.rows)[0];
  $('fWho').textContent=(player||'Piloto')+' · bandera a cuadros';$('fTime').textContent=fmt(t);$('fTime').style.color=(!overPrev||ms<=overPrev.ms)?'var(--sec-purple)':(!prev||ms<prev.ms)?'var(--sec-green)':'var(--sec-yellow)';$('saveNote').textContent='';
  let note='Tiempo guardado en este dispositivo.';

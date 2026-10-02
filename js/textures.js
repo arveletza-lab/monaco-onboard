@@ -40,9 +40,23 @@ function balTex(){const c=canvas(128,64),g=c.getContext('2d');g.clearRect(0,0,12
 function tunnelTileTex(){const c=canvas(128,128),g=c.getContext('2d');g.fillStyle='#c9b88f';g.fillRect(0,0,128,128);for(let y=0;y<128;y+=16)for(let x=(y/16)%2?-16:0;x<128;x+=32){const v=rr(-12,12);g.fillStyle=`rgb(${201+v},${184+v},${143+v})`;g.fillRect(x+1,y+1,30,14);}return tex(c);}
 function kerbTexB(){const c=canvas(64,192),g=c.getContext('2d');g.fillStyle='#d4202a';g.fillRect(0,0,64,64);g.fillStyle='#f4f4f0';g.fillRect(0,64,64,64);g.fillStyle='#2d6fd0';g.fillRect(0,128,64,64);for(let i=0;i<500;i++){g.fillStyle=`rgba(0,0,0,${Math.random()*.12})`;g.fillRect(Math.random()*64,Math.random()*192,2,2);}return tex(c);}
 function fenceTex(){const c=canvas(64,64),g=c.getContext('2d');g.strokeStyle='rgba(78,82,86,.75)';g.lineWidth=2.4;g.beginPath();g.moveTo(0,0);g.lineTo(64,64);g.moveTo(64,0);g.lineTo(0,64);g.stroke();const t=tex(c);t.encoding=THREE.sRGBEncoding;return t;}
-function crowdTex(){const c=canvas(512,128),g=c.getContext('2d');g.fillStyle='#2e2c2b';g.fillRect(0,0,512,128);
- const sh=['#d9d6d0','#cfcbc4','#bdb8b0','#9a3a32','#7e3a30','#26304a','#1c1d20','#2a2b2e','#a8987c','#5f6b78','#3b5578','#c9c2b4','#5e2a33','#b89a52','#3a3c40'];const sk=['#e9c3a1','#d8a680','#b5825e','#f1d3bb','#8c5d40'];
- for(let r=0;r<4;r++){const y=r*32;g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,y+28,512,4);for(let x=0;x<512;x+=rr(5.5,8)){if(Math.random()<.06)continue;const bw=rr(4,6),yy=y+rr(0,4);g.fillStyle=pick(sh);g.fillRect(x,yy+11,bw,15);g.fillStyle=pick(sk);g.beginPath();g.arc(x+bw/2,yy+8,2.6,0,TAU);g.fill();if(Math.random()<.25){g.fillStyle=pick(['#f2f0ec','#1b1b1b','#c8261e']);g.fillRect(x+bw/2-3,yy+4,6,2.5);}}}
+// grandstand crowd: 8 bands, each one row of seated spectators upright on a transparent background (12 m of stand across);
+// dense and mostly light, warm summer clothes, caps and a few flags, as in the onboard footage
+function crowdTex(){const W=1024,H=512,RH=H/8,c=canvas(W,H),g=c.getContext('2d');g.clearRect(0,0,W,H);
+ const wpick=a=>{let s=0;for(const x of a)s+=x[1];let r=Math.random()*s;for(const x of a){r-=x[1];if(r<=0)return x[0];}return a[0][0];};
+ const shirts=[['#f1efe9',22],['#e2ddd2',8],['#cfd6de',6],['#c8261e',10],['#e05a2a',5],['#f08a1c',5],['#1d2433',9],['#2a2b2e',7],['#3c5a8a',6],['#8fb4d8',5],['#f2d34a',3],['#e79ab0',3],['#4f8a5a',2],['#b9a27c',4],['#7a2230',3]];
+ const skins=[['#f0c9a8',4],['#e2b08a',5],['#c98f68',3],['#a86f4c',2],['#7c4f35',1]];
+ const hairs=[['#2b211b',5],['#4a3324',4],['#7a5a3a',2],['#c9a46a',2],['#8d8d8d',1]];
+ const caps=['#c8261e','#f4f4f2','#1b1b1b','#f08a1c','#1f3c8a'];
+ for(let r=7;r>=0;r--){const y0=r*RH;
+  for(let x=-10;x<W+10;x+=46+Math.random()*10){if(Math.random()<.06)continue;const px=x+Math.random()*8,sw=36+Math.random()*12,top=y0+20+Math.random()*6;
+   const sh=wpick(shirts);g.fillStyle=sh;g.beginPath();g.moveTo(px-sw/2,y0+RH);g.lineTo(px-sw/2+3,top+8);g.quadraticCurveTo(px,top,px+sw/2-3,top+8);g.lineTo(px+sw/2,y0+RH);g.fill();
+   g.fillStyle='rgba(0,0,0,.12)';g.fillRect(px-sw/2,top+20,sw,3);
+   const sk=wpick(skins);if(Math.random()<.08){g.strokeStyle=sk;g.lineWidth=7;g.beginPath();g.moveTo(px+sw/2-6,top+10);g.lineTo(px+sw/2+4,top-22);g.stroke();}
+   const hr=10+Math.random()*2,hy=top-6;g.fillStyle=sk;g.beginPath();g.arc(px,hy,hr,0,TAU);g.fill();
+   const cap=Math.random()<.22;g.fillStyle=cap?caps[Math.floor(Math.random()*caps.length)]:wpick(hairs);g.beginPath();g.arc(px,hy-2,hr+1,Math.PI*1.05,Math.PI*1.95);g.fill();if(cap)g.fillRect(px-hr,hy-4,hr*2+5,4);
+   if(Math.random()<.12){g.fillStyle='#151515';g.fillRect(px-hr+3,hy-2,hr*2-6,4);}
+   if(Math.random()<.025){const fx=px+8,fy=top-40,red=Math.random()<.6;g.fillStyle='#ddd';g.fillRect(fx,fy,2,46);g.fillStyle=red?'#d51b2b':'#f08a1c';g.fillRect(fx+2,fy,28,10);g.fillStyle=red?'#f6f6f4':'#f08a1c';g.fillRect(fx+2,fy+10,28,10);}}}
  const t=tex(c);return t;}
 function waterNormal(){const n=256,c=canvas(n,n),g=c.getContext('2d'),img=g.createImageData(n,n);const waves=[];for(let k=0;k<9;k++)waves.push([Math.floor(rr(1,7))*(R()<.5?-1:1),Math.floor(rr(1,7)),rr(0,TAU),rr(.4,1)]);
  const H=(x,y)=>{let h=0;for(const w of waves)h+=w[3]*Math.sin(TAU*(w[0]*x+w[1]*y)/n+w[2]);return h;};

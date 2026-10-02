@@ -53,4 +53,4 @@ function instTiled(geo,mat,items,setM,opts){const T=320,tiles=new Map();for(cons
 const mtx=(x,y,z,ry,rx,rz,sx,sy,sz)=>new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),new THREE.Quaternion().setFromEuler(new THREE.Euler(rx||0,ry||0,rz||0,'YXZ')),new THREE.Vector3(sx||1,sy||1,sz||1));
 function fmt(t){if(t==null)return'—';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(3);}
 
-export {$,Batch,CHUNKS,COL,IS_MOBILE,R,TAU,canvas,clamp,fbm,fmt,hash2,instTiled,lerp,lin,mtx,pick,pip,registerChunk,rr,scene,sstep,wrapA};
+export {$,Batch,CHUNKS,COL,IS_MOBILE,R,TAU,canvas,clamp,fbm,fmt,hash2,instTiled,lerp,lin,mtx,mulberry,pick,pip,registerChunk,rr,scene,sstep,wrapA};
