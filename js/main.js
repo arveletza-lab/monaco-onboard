@@ -1,12 +1,12 @@
 // Entry point: renderer, sky and lights, cameras, HUD, menu, controls, graphics quality and the main loop.
 
-import {$,CHUNKS,IS_MOBILE,TAU,canvas,clamp,fmt,lerp,scene} from './util.js';
-import {CORNERS,CPI,DS,N,PSI,SX,SY,SZ,TUN,TXa,TZa,mod,runs} from './track.js';
+import {$,CHUNKS,IS_MOBILE,TAU,canvas,clamp,fmt,lerp,scene,wrapA} from './util.js';
+import {CORNERS,CPI,DATA,DS,N,PSI,SX,SY,SZ,TUN,TXa,TZa,cpIdx,mod,runs} from './track.js';
 import {setMaxAnisotropy} from './textures.js';
 import {buildWorld,heightAt,lampMats,world} from './world.js';
 import {CARP,buildCar,car,carObj,drawScreen,mirrorCam,mirrorRT} from './car.js';
-import {kerbV,physics,placeCar,resetCar,scrapeV} from './physics.js';
-import {cleanName,initBoard,race,renderRank,renderSecs,resetSectors,setPlayer,showBanner,startSequence,syncPrevI,timing,updateStart} from './race.js';
+import {kerbV,physics,placeCar,resetCar,resetWallHits,scrapeV,wallHits} from './physics.js';
+import {SEC,cleanName,initBoard,race,renderRank,renderSecs,resetSectors,setPlayer,showBanner,startSequence,syncPrevI,timing,updateStart} from './race.js';
 import {A,applySound,initAudio,updateAudio} from './audio.js';
 
 // ---------------------------------------------------------------- renderer / scene
@@ -138,9 +138,10 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
  if(world.waterTex){world.waterTex.offset.x=t*.004;world.waterTex.offset.y=t*.0025;}
  hud(dt);updateAudio(inp.thr*(race.go?1:.7),tunF,scrapeV,kerbV);
  if((cullN++&7)===0)cullChunks();autoResolution(dt);
- renderer.render(scene,camera);
+ renderer.render(scene,camera);mainInfo.calls=renderer.info.render.calls;mainInfo.tris=renderer.info.render.triangles;
  if(opt.cam<=1&&PRESET[opt.q].mirror&&(frameN++%PRESET[opt.q].mirror===0)){carObj.visible=false;carObj.localToWorld(mirrorCam.position.set(0,.9,.3));mirrorCam.quaternion.copy(carObj.quaternion).multiply(Q_BACK);sky.position.copy(mirrorCam.position);renderer.shadowMap.autoUpdate=false;renderer.setRenderTarget(mirrorRT);renderer.render(scene,mirrorCam);renderer.setRenderTarget(null);renderer.shadowMap.autoUpdate=true;carObj.visible=true;}}
-let frameN=0;let cullN=0;const Q_BACK=new THREE.Quaternion().setFromEuler(new THREE.Euler(-.02,Math.PI,0,'YXZ'));
+let frameN=0;let cullN=0;const mainInfo={calls:0,tris:0}; // draw calls and triangles of the last main view (the mirror render comes after)
+const Q_BACK=new THREE.Quaternion().setFromEuler(new THREE.Euler(-.02,Math.PI,0,'YXZ'));
 
 const CAMNAMES=['Cockpit','Onboard TV','T-cam','Exterior'];function showCam(){$('camName').textContent=CAMNAMES[opt.cam];}
 function restartRace(){race.finished=false;$('finish').hidden=true;placeCar(mod(-8),-2.3);Object.assign(car,{lap:1,lapT:0,armed:false,invalid:false,trace:[],gear:1,rpm:4200,rev:0,wrong:0,shake:0,lat:0,lon:0});syncPrevI();resetSectors();race.go=false;race.delta=null;race.phase='grid';lampMats.forEach(m=>m.color.setHex(0x220608));document.querySelectorAll('#lights .pod').forEach(p=>p.classList.remove('on'));$('lights').hidden=true;chaseInit=false;if(paused)togglePause();if(opt.start)startSequence();else{race.phase='race';race.go=true;}showBanner('','Vuelta nueva');}
@@ -159,10 +160,29 @@ try{const n=localStorage.getItem('mc_name');if(n)$('pname').value=n;}catch(e){}
 initBoard();resetSectors();
 $('go').onclick=()=>{syncOpts();const nm=cleanName($('pname').value);if(!nm){$('pname').focus();$('pname').placeholder='Escribí tu nombre';return;}setPlayer(nm);try{localStorage.setItem('mc_name',nm);}catch(e){}if(opt.sound)initAudio();applySound();if(!started){started=true;$('menu').hidden=true;if(isTouch)document.documentElement.classList.add('touch');$('tools').hidden=false;placeTools();showCam();if(isTouch)$('touch').hidden=false;if(opt.start)startSequence();else{race.phase='race';race.go=true;}}else togglePause();};
 
+// ---------------------------------------------------------------- test mode (local development only)
+// window.__debug lets the QA scripts in tools/qa place the car, run the physics and read timing and render stats.
+// It exists only when the page is served from localhost or 127.0.0.1, never on the published site.
+const DEBUG=location.hostname==='localhost'||location.hostname==='127.0.0.1';
+let debugReady=null;
+if(DEBUG){let resolve,reject;const ready=new Promise((a,b)=>{resolve=a;reject=b;});debugReady={resolve,reject};
+ let cpTab=null;const cpNear=i=>{if(!cpTab)cpTab=DATA.track.map((_,k)=>cpIdx(k));let best=0,bd=1e9;cpTab.forEach((s,k)=>{const d=Math.min(mod(s-i),mod(i-s));if(d<bd){bd=d;best=k;}});return best;};
+ window.__debug={ready,
+  place(cp,d=0,cam=0,offset=0){placeCar(mod(cpIdx(cp)+offset),d);Object.assign(car,{lap:1,lapT:0,armed:false,invalid:false,trace:[],gear:1,rpm:4200,rev:0,wrong:0,shake:0,lat:0,lon:0});
+   race.finished=false;race.delta=null;syncPrevI();resetSectors();resetWallHits();$('finish').hidden=true;
+   opt.cam=cam;$('optCam').value=String(cam);chaseInit=false;showCam();for(const id of['menu','tools','touch'])$(id).hidden=true;return this.state();},
+  // fixed 1/120 s steps of physics and timing; the autopilot follows the centre of the road flat out (the braking aid slows it for the corners)
+  sim(seconds,autopilot=true){race.phase='race';race.go=true;const n=Math.round(seconds*120);
+   for(let k=0;k<n&&!race.finished;k++){let inp={thr:0,brk:0,st:0};if(autopilot){const diff=wrapA(PSI[mod(car.i+6)]-car.yaw);inp={thr:1,brk:0,st:clamp(-diff*3-car.d*.15,-1,1)};}
+    lastInp=inp;physics(1/120,inp);timing(1/120);}
+   return this.state();},
+  state(){return {i:car.i,cp_cercano:cpNear(car.i),v_kmh:Math.round(Math.abs(car.v)*3.6),d:+car.d.toFixed(2),lapT:+car.lapT.toFixed(3),sector:Math.min(3,SEC.cur+1),finished:!!race.finished,sectores:SEC.t.map(v=>v==null?null:+v.toFixed(3)),invalid:!!car.invalid,wallHits};},
+  stats(){return {drawCalls:mainInfo.calls,triangles:mainInfo.tris,fps:Math.round(perf.fps)};}};}
+
 // ---------------------------------------------------------------- boot
 opt.q=SAVED_Q!=null?SAVED_Q:(IS_MOBILE?0:(innerWidth<760?1:2));$('optQ').value=String(opt.q);
 resize();
-setTimeout(()=>{try{buildWorld();buildCar();prepMinimap();placeCar(mod(-8),-2.3);syncPrevI();applyQuality();$('loading').textContent='';$('go').disabled=false;$('go').focus();requestAnimationFrame(frame);}
- catch(err){$('loading').textContent='No se pudo construir la escena 3D: '+err.message;console.error(err);}},30);
+setTimeout(()=>{try{buildWorld();buildCar();prepMinimap();placeCar(mod(-8),-2.3);syncPrevI();applyQuality();$('loading').textContent='';$('go').disabled=false;$('go').focus();requestAnimationFrame(frame);if(debugReady)debugReady.resolve(true);}
+ catch(err){$('loading').textContent='No se pudo construir la escena 3D: '+err.message;console.error(err);if(debugReady)debugReady.reject(err);}},30);
 
 export {opt,paused};

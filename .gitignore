@@ -2,8 +2,12 @@
 _origen/
 _videos/
 node_modules/
-package.json
-package-lock.json
+/package.json
+/package-lock.json
+
+# pruebas locales (tools/qa)
+qa-out/
+tools/qa/node_modules/
 
 # entradas e intermedios de tools/prep.py
 tools/*.geojson

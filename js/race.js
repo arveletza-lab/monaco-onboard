@@ -72,4 +72,4 @@ async function finishRace(t){race.finished=true;const ms=Math.round(t*1000);
  $('fPos').textContent=(prev&&prev.ms<=ms?'Tu mejor marca sigue siendo '+fmt(prev.ms/1000)+'. ':'¡Nueva mejor marca personal! ')+(pos>=0?'Posición '+(pos+1)+' de '+mine.length+' entre tus vueltas.':'');
  $('saveNote').textContent=note;renderBoards();setTimeout(()=>{$('finish').hidden=false;$('fAgain').focus();},1200);}
 
-export {cleanName,initBoard,race,renderRank,renderSecs,resetSectors,setPlayer,showBanner,startSequence,syncPrevI,timing,updateStart};
+export {SEC,cleanName,initBoard,race,renderRank,renderSecs,resetSectors,setPlayer,showBanner,startSequence,syncPrevI,timing,updateStart};

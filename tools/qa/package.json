@@ -1,0 +1,9 @@
+{
+  "name": "monaco-onboard-qa",
+  "private": true,
+  "type": "module",
+  "description": "Herramientas de prueba local de Mónaco Onboard (capturas, vuelta automática, cuadros de los videos de referencia).",
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}
