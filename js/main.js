@@ -61,12 +61,12 @@ const eye=new THREE.Vector3();const camQ=new THREE.Quaternion();const chasePos=n
 function cycleCam(){opt.cam=(opt.cam+1)%4;$('optCam').value=String(opt.cam);chaseInit=false;showCam();}
 // per vehicle: pitch and field of view of cameras 0 (cockpit), 1 (onboard TV) and 2 (T-cam), T-cam eye, front wheels hidden in the cockpit view
 const VCAM={formula:{pitch:[-.19,-.155,-.075],fov:[56,72,66],tcam:[0,1.32,.64],hideFront:true},
- tractor:{pitch:[-.13,-.19,-.12],fov:[64,70,66],tcam:[0,2.46,.9],hideFront:false},
+ tractor:{pitch:[-.13,-.19,-.12],fov:[64,70,66],tcam:[0,2.46,.9],hideFront:false,hideDriver1:true},
  nightcar:{pitch:[-.1,-.13,-.08],fov:[60,70,66],tcam:[0,1.5,1.2],hideFront:false}};
 function updateCamera(dt,t){const sh=car.shake;car.shake*=Math.exp(-dt*6);
  const jitter=(Math.sin(t*61)*.5+Math.sin(t*37.3)*.5)*sh*.012+Math.sin(t*23)*Math.min(1,car.v/86)*.0012;
  const V=VCAM[CARP.id]||VCAM.formula,E=CARP.eye||{cockpit:[0,.79,.02],onboard:[0,1.25,.36]};
- CARP.helmet.visible=opt.cam!==0;for(const w of CARP.wheels)if(w.front)w.grp.visible=opt.cam!==0||!V.hideFront;
+ CARP.helmet.visible=opt.cam!==0&&!(opt.cam===1&&V.hideDriver1);for(const w of CARP.wheels)if(w.front)w.grp.visible=opt.cam!==0||!V.hideFront;
  if(opt.cam===3){// chase camera: distance and height grow with the size of the vehicle (the formula keeps 7.8 m back, 2.5 m up)
   const len=CARP.length||5.6,up=Math.max(0,(CARP.height||1.2)-1.2);
   const fwd=new THREE.Vector3(-Math.sin(car.yaw),0,-Math.cos(car.yaw));const want=new THREE.Vector3(car.x,car.y,car.z).addScaledVector(fwd,-Math.max(6.5,2.2+len)).add(new THREE.Vector3(0,2.5+up*.8,0));
@@ -174,12 +174,15 @@ const VP={ready:false,raf:0,last:0,frames:0,inView:true,tiles:[],veh:[],r:null,s
 const vehBtns=[...document.querySelectorAll('.veh')];
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let booted=false;
+// Menu ready: keep it scrolled to the top (title + driver name visible). Keyboard users get focus without scrolling;
+// on touch devices no auto-focus (it would scroll and pop the on-screen keyboard).
+function menuFocus(){const m=$('menu');if(!isTouch){const el=$('pname').value.trim()?$('go'):$('pname');try{el.focus({preventScroll:true});}catch(e){}}m.scrollTop=0;requestAnimationFrame(()=>{m.scrollTop=0;});}
 function syncVehUI(){for(const b of vehBtns){const on=b.dataset.veh===opt.vehicle;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;}}
 function pickVehicle(id){if(!VEHICLES[id])return;if(id!==opt.vehicle){if(booted)setVehicle(id);else{opt.vehicle=id;try{localStorage.setItem('mc_vehicle',id);}catch(e){}}}syncVehUI();}
 vehBtns.forEach((b,k)=>{b.addEventListener('click',()=>pickVehicle(b.dataset.veh));
  b.addEventListener('keydown',e=>{let n=null;if(e.key==='ArrowRight'||e.key==='ArrowDown')n=(k+1)%3;else if(e.key==='ArrowLeft'||e.key==='ArrowUp')n=(k+2)%3;
   else if(e.key==='Enter'||e.key===' '){e.preventDefault();pickVehicle(b.dataset.veh);return;}
-  if(n!=null){e.preventDefault();pickVehicle(vehBtns[n].dataset.veh);vehBtns[n].focus();}});});
+  if(n!=null){e.preventDefault();pickVehicle(vehBtns[n].dataset.veh);vehBtns[n].focus({preventScroll:true});}});});
 syncVehUI();
 function vpTex(w,h,paint){const c=canvas(w,h);paint(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;}
 function initVehPreview(){const cv=$('vehCanvas');let r;
@@ -274,7 +277,7 @@ if(DEBUG){let resolve,reject;const ready=new Promise((a,b)=>{resolve=a;reject=b;
 // ---------------------------------------------------------------- boot
 opt.q=SAVED_Q!=null?SAVED_Q:(IS_MOBILE?0:(innerWidth<760?1:2));$('optQ').value=String(opt.q);
 resize();
-setTimeout(()=>{try{buildWorld();opt.vehicle=buildCar(opt.vehicle);prepMinimap();placeCar(mod(-8),-2.3);syncPrevI();applyQuality();$('loading').textContent='';$('go').disabled=false;$('go').focus();booted=true;syncVehUI();requestAnimationFrame(frame);setTimeout(()=>{try{initVehPreview();}catch(e){console.warn(e);$('vehCanvas').hidden=true;}},60);if(debugReady)debugReady.resolve(true);}
+setTimeout(()=>{try{buildWorld();opt.vehicle=buildCar(opt.vehicle);prepMinimap();placeCar(mod(-8),-2.3);syncPrevI();applyQuality();$('loading').textContent='';$('go').disabled=false;menuFocus();booted=true;syncVehUI();requestAnimationFrame(frame);setTimeout(()=>{try{initVehPreview();}catch(e){console.warn(e);$('vehCanvas').hidden=true;}},60);if(debugReady)debugReady.resolve(true);}
  catch(err){$('loading').textContent='No se pudo construir la escena 3D: '+err.message;console.error(err);if(debugReady)debugReady.reject(err);}},30);
 
 export {opt,paused,setVehicle};

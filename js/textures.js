@@ -20,7 +20,7 @@ const BOARD={green:[['#10803f','#e7cf6e','MONACO'],['#10803f','#e7cf6e','MONTE-C
  black:[['#111215','#e6c77a','CASINO SQUARE'],['#111215','#e6c77a','MONTE-CARLO'],['#111215','#ffffff','MONACO'],['#111215','#e6c77a','1929']],
  maroon:[['#7d1d48','#ffffff','PRINCIPAUTÉ'],['#7d1d48','#ffffff','MONACO'],['#7d1d48','#ffffff','MIRABEAU'],['#7d1d48','#ffffff','MONTE-CARLO']],
  blackw:[['#15171a','#ffffff','MONTE-CARLO'],['#15171a','#ffffff','MONACO'],['#15171a','#ffffff','1929'],['#15171a','#ffffff','PRINCIPAUTÉ']],
- white:[['#efefec','#c8102e','PRINCIPAUTÉ'],['#efefec','#1c2c63','PORTIER'],['#efefec','#c8102e','MONACO'],['#efefec','#1c2c63','MONTE-CARLO']],
+ portier:[['#10803f','#f2d23a','MONACO'],['#f2c200','#10803f','PORTIER'],['#10803f','#f2d23a','MONTE-CARLO'],['#f07a12','#ffffff','1929']],
  darkgreen:[['#0f4d2e','#ffffff','PORT HERCULE'],['#1c2f63','#ffffff','MONACO'],['#0f4d2e','#ffffff','PRINCIPAUTÉ'],['#1c2f63','#ffffff','MONTE-CARLO']],
  purple:[['#2d2a78','#ffffff','PISCINE'],['#2d2a78','#ffffff','MONACO'],['#2d2a78','#ffffff','PRINCIPAUTÉ'],['#2d2a78','#ffffff','MONTE-CARLO']],
  chicane:[['#f3dc00','#d8231f','MONACO'],['#f3dc00','#d8231f','NOUVELLE CHICANE'],['#f3dc00','#d8231f','PRINCIPAUTÉ'],['#f3dc00','#d8231f','1929']],
@@ -59,6 +59,27 @@ function crowdTex(){const W=1024,H=512,RH=H/8,c=canvas(W,H),g=c.getContext('2d')
    if(Math.random()<.12){g.fillStyle='#151515';g.fillRect(px-hr+3,hy-2,hr*2-6,4);}
    if(Math.random()<.025){const fx=px+8,fy=top-40,red=Math.random()<.6;g.fillStyle='#ddd';g.fillRect(fx,fy,2,46);g.fillStyle=red?'#d51b2b':'#f08a1c';g.fillRect(fx+2,fy,28,10);g.fillStyle=red?'#f6f6f4':'#f08a1c';g.fillRect(fx+2,fy+10,28,10);}}}
  const t=tex(c);return t;}
+// standing crowd: 2 bands, each one row of spectators on their feet (full figures, 12 m across), mostly orange and red as at Portier;
+// Math.random only, so the seeded world generator is untouched
+function standTex(){const W=1024,H=256,RH=H/2,c=canvas(W,H),g=c.getContext('2d');g.clearRect(0,0,W,H);
+ const wpick=a=>{let s=0;for(const x of a)s+=x[1];let r=Math.random()*s;for(const x of a){r-=x[1];if(r<=0)return x[0];}return a[0][0];};
+ const shirts=[['#f07a12',14],['#e35a1c',8],['#c8261e',14],['#d51b2b',6],['#f1efe9',10],['#1d2433',5],['#f2d34a',3],['#3c5a8a',3],['#2a2b2e',3]];
+ const legs=[['#2a2d33',5],['#3b4a66',4],['#d9d2c0',3],['#f07a12',2],['#1b1b1b',2]];
+ const skins=[['#f0c9a8',4],['#e2b08a',5],['#c98f68',3],['#a86f4c',2],['#7c4f35',1]];
+ const hairs=[['#2b211b',5],['#4a3324',4],['#7a5a3a',2],['#c9a46a',2]];
+ for(let r=1;r>=0;r--){const y0=r*RH,foot=y0+RH-2;
+  for(let x=-8;x<W+8;x+=30+Math.random()*16){if(Math.random()<.08)continue;const px=x+Math.random()*6,sc=.88+Math.random()*.16,hgt=(RH-8)*sc,sw=17+Math.random()*7;
+   const hip=foot-hgt*.47,sh=foot-hgt*.8,hr=hgt*.065,hy=foot-hgt+hr;
+   g.fillStyle=wpick(legs);g.fillRect(px-sw/2+2,hip,sw/2-2.5,foot-hip);g.fillRect(px+.5,hip,sw/2-2.5,foot-hip);
+   g.fillStyle='#1a1a1a';g.fillRect(px-sw/2+1,foot-3,sw/2-1,3);g.fillRect(px+.5,foot-3,sw/2-1,3);
+   const shirt=wpick(shirts);g.fillStyle=shirt;g.beginPath();g.moveTo(px-sw/2,hip+2);g.lineTo(px-sw/2-1,sh+5);g.quadraticCurveTo(px,sh-3,px+sw/2+1,sh+5);g.lineTo(px+sw/2,hip+2);g.fill();
+   const sk=wpick(skins);g.strokeStyle=Math.random()<.5?shirt:sk;g.lineWidth=4.5;g.beginPath();
+   if(Math.random()<.18){g.moveTo(px+sw/2,sh+5);g.lineTo(px+sw/2+5,hy-hr*2.2);}else{g.moveTo(px+sw/2,sh+5);g.lineTo(px+sw/2+2,hip+4);}
+   g.moveTo(px-sw/2,sh+5);g.lineTo(px-sw/2-2,hip+4);g.stroke();
+   g.fillStyle=sk;g.beginPath();g.arc(px,hy,hr,0,TAU);g.fill();
+   const cap=Math.random()<.3;g.fillStyle=cap?(Math.random()<.6?'#c8261e':'#f08a1c'):wpick(hairs);g.beginPath();g.arc(px,hy-1,hr+1,Math.PI*1.05,Math.PI*1.95);g.fill();if(cap)g.fillRect(px-hr,hy-3,hr*2+4,3);
+   if(Math.random()<.04){const fx=px+6,fy=hy-hr*3;g.fillStyle='#ddd';g.fillRect(fx,fy,2,hr*5);g.fillStyle='#d51b2b';g.fillRect(fx+2,fy,24,8);g.fillStyle='#f6f6f4';g.fillRect(fx+2,fy+8,24,8);}}}
+ return tex(c);}
 function waterNormal(){const n=256,c=canvas(n,n),g=c.getContext('2d'),img=g.createImageData(n,n);const waves=[];for(let k=0;k<9;k++)waves.push([Math.floor(rr(1,7))*(R()<.5?-1:1),Math.floor(rr(1,7)),rr(0,TAU),rr(.4,1)]);
  const H=(x,y)=>{let h=0;for(const w of waves)h+=w[3]*Math.sin(TAU*(w[0]*x+w[1]*y)/n+w[2]);return h;};
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){const dx=H(x+1,y)-H(x-1,y),dy=H(x,y+1)-H(x,y-1);let nx=-dx*1.6,ny=-dy*1.6,nz=1;const l=Math.hypot(nx,ny,nz);const k=(y*n+x)*4;img.data[k]=(nx/l*.5+.5)*255;img.data[k+1]=(ny/l*.5+.5)*255;img.data[k+2]=(nz/l*.5+.5)*255;img.data[k+3]=255;}
@@ -115,4 +136,4 @@ function concreteTex(){const c=canvas(256,64),g=c.getContext('2d');g.fillStyle='
  for(let x=0;x<256;x+=128){g.fillStyle='rgba(60,60,60,.25)';g.fillRect(x,0,2,64);}g.fillStyle='rgba(90,70,50,.22)';g.fillRect(0,52,256,12);g.fillStyle='rgba(255,255,255,.5)';g.fillRect(0,0,256,4);return tex(c);}
 function carbonTex(){const c=canvas(64,64),g=c.getContext('2d');for(let y=0;y<64;y+=4)for(let x=0;x<64;x+=4){const on=((x+y)/4)%4<2;g.fillStyle=on?'#2a2d31':'#15171a';g.fillRect(x,y,4,4);g.fillStyle='rgba(255,255,255,.05)';g.fillRect(x,y,4,1);}return tex(c,[6,6]);}
 
-export {BOARD,armcoTex,asphaltTex,balTex,bannerTex,boardTex,bridgeTex,carbonTex,concreteTex,crowdTex,facadeTex,fenceTex,frondTex,ironTex,kerbTex,kerbTexB,leafTex,numTex,sdBoardTex,setMaxAnisotropy,shopTex,stoneTex,stuccoTex,tunnelTileTex,waterNormal};
+export {BOARD,armcoTex,asphaltTex,balTex,bannerTex,boardTex,bridgeTex,carbonTex,concreteTex,crowdTex,facadeTex,fenceTex,frondTex,ironTex,kerbTex,kerbTexB,leafTex,numTex,sdBoardTex,setMaxAnisotropy,shopTex,standTex,stoneTex,stuccoTex,tunnelTileTex,waterNormal};

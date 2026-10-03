@@ -97,7 +97,7 @@ export function build(group){const P={};
  K.put(mSide,panel(.86,.3),E(-.262,.95,-1.3,0,-X,0));
  K.put(mSide,panel(.86,.3,[[.1,-.02,0,.09,.035,0,0,1],[-.2,.08,0,.06,.02,0,0,1]]),E(-.262,.95,-.43,0,-X,0));
  // right front panel hanging from its front hinge, swung out
- {const hp=new THREE.Group();hp.position.set(.262,1.09,-1.72);hp.rotation.set(.05,.55,-.25);const g=panel(.86,.3,[[0,-.05,0,.12,.03,0,0,1]]);g.applyMatrix4(E(0,-.15,.43,0,X,0));hp.updateMatrix();K.put(mSide,g,hp.matrix);}
+ {const hp=new THREE.Group();hp.position.set(.262,1.09,-1.72);hp.rotation.set(0,.24,.1);const g=panel(.86,.3,[[0,-.05,0,.12,.03,0,0,1]]);g.applyMatrix4(E(0,-.15,.43,0,X,0));hp.updateMatrix();K.put(mSide,g,hp.matrix);}
  // louvres on the complete side
  for(let k=0;k<5;k++)box(M.green,.02,.025,.12,T(-.272,1.02-k*.035,-1.42));
  // exposed engine on the right rear: cylinder head, spark plugs and wires, manifold
@@ -111,8 +111,10 @@ export function build(group){const P={};
  for(let k=0;k<8;k++){const y=.86+k*.048;const bent=k===3;box(M.iron,.44,.012,.02,bent?E(.02,y-.012,-1.795,.25,0,.06):T(0,y,-1.785));}
  cyl(M.chromeOld,.035,.04,.05,12,T(0,1.33,-1.62));                  // radiator cap
  // exhaust (bent, rusty, with rain flap) and the air intake stack
- {const c=new THREE.CatmullRomCurve3([[.11,1.22,-1.12],[.11,1.5,-1.12],[.125,1.68,-1.105],[.17,1.84,-1.07],[.24,1.95,-1.03]].map(a=>new THREE.Vector3(...a)));K.put(M.rust,new THREE.TubeGeometry(c,16,.042,10,false));
-  K.put(M.rust,new THREE.TorusGeometry(.042,.008,6,12),E(.24,1.95,-1.03,X,0,-.6));cyl(M.iron,.05,.05,.008,12,E(.28,2.0,-1.02,0,0,.9));}
+ // on the right edge of the hood, leaning outwards, so it stays off the centre of the view from the seat
+ {const c=new THREE.CatmullRomCurve3([[.27,.98,-1.2],[.31,1.12,-1.2],[.315,1.42,-1.2],[.33,1.56,-1.19],[.36,1.64,-1.17],[.41,1.69,-1.15]].map(a=>new THREE.Vector3(...a)));K.put(M.rust,new THREE.TubeGeometry(c,18,.04,10,false));
+  box(M.iron,.06,.03,.05,T(.29,1.2,-1.2));                         // clamp to the hood side
+  K.put(M.rust,new THREE.TorusGeometry(.04,.008,6,12),E(.41,1.69,-1.15,X,0,-.75));cyl(M.iron,.048,.048,.008,12,E(.445,1.735,-1.14,0,0,1.0));}
  cyl(M.greenD,.03,.03,.2,10,T(-.1,1.38,-1.42));cyl(M.green,.075,.06,.1,14,T(-.1,1.5,-1.42));cyl(M.green,.085,.085,.02,14,T(-.1,1.56,-1.42));
  // steering shaft along the hood top to the gear box at the cowl
  rod(M.iron,[0,1.335,-1.66],[0,1.37,.3],.018,8);box(M.greenD,.12,.1,.12,T(0,1.33,-1.66));

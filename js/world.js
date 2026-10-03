@@ -3,7 +3,7 @@
 
 import {Batch,CHUNKS,COL,IS_MOBILE,R,TAU,clamp,fbm,hash2,instTiled,lerp,lin,mtx,mulberry,pick,pip,registerChunk,rr,scene,sstep} from './util.js';
 import {CHI,DATA,DS,ESC,ESC_W,EXA,EXMAX,GREEN,HW,K,MARETERRA_PARK,N,P,PIT,PSI,RXa,RZa,SDZ,STR,SX,SY,SZ,TUN,TXa,TZa,cpIdx,escAt,isWaterXZ,maskAt,mod,nearest,rangeIdx,roadCap,roadMin,runs} from './track.js';
-import {BOARD,armcoTex,asphaltTex,balTex,bannerTex,boardTex,bridgeTex,concreteTex,crowdTex,facadeTex,fenceTex,frondTex,ironTex,kerbTex,kerbTexB,leafTex,numTex,sdBoardTex,shopTex,stoneTex,stuccoTex,tunnelTileTex,waterNormal} from './textures.js';
+import {BOARD,armcoTex,asphaltTex,balTex,bannerTex,boardTex,bridgeTex,concreteTex,crowdTex,facadeTex,fenceTex,frondTex,ironTex,kerbTex,kerbTexB,leafTex,numTex,sdBoardTex,shopTex,standTex,stoneTex,stuccoTex,tunnelTileTex,waterNormal} from './textures.js';
 
 // strip helper along the track
 function strip(i0,count,fn,vScale,mat,shadow,swap){const pos=[],uv=[],idx=[];for(let k=0;k<=count;k++){const i=mod(i0+k);const ab=fn(i);pos.push(...ab[0],...ab[1]);const v=k*DS/vScale;if(swap)uv.push(v*swap,0,v*swap,1);else uv.push(0,v,1,v);}
@@ -13,6 +13,7 @@ function strip(i0,count,fn,vScale,mat,shadow,swap){const pos=[],uv=[],idx=[];for
 const TX0=-1400,TX1=1600,TZ0=-2400,TZ1=1400,TC=8;
 const TNX=Math.round((TX1-TX0)/TC)+1,TNZ=Math.round((TZ1-TZ0)/TC)+1;
 const TH=new Float32Array(TNX*TNZ),TW=new Uint8Array(TNX*TNZ),TD=new Float32Array(TNX*TNZ);
+let TGEO=null; // the whole terrain geometry (its chunks share the position, normal and colour attributes)
 // relief control points (local x east, y north, metres above sea)
 const RELIEF=[[-150,-200,3],[-100,20,3],[0,40,3.5],[120,60,6],[250,120,8],[-420,-180,7],[-450,-420,5],[-620,-760,3],[-800,-1000,3],[-380,-40,9],[-470,60,22],[-520,200,40],[-420,300,55],[-300,210,32],[-220,330,58],[-120,260,42],[0,210,36],[80,260,44],[140,330,46],[240,320,43],[300,380,34],[360,440,22],[330,560,40],[230,470,52],[120,470,60],[20,420,62],[-100,470,72],[-300,470,85],[-560,420,95],[-800,300,130],[-1000,0,120],[-900,-400,70],[-700,-300,45],[-600,-100,30],[100,620,70],[250,640,62],[420,650,30],[560,760,12],[700,950,14],[850,1150,22],[600,1000,60],[400,850,80],[200,850,100],[0,800,110],[-250,750,140],[-500,700,150],[-800,700,200],[-1100,500,230],[0,1100,190],[250,1100,150],[500,1200,110],[800,1350,70],[1100,1500,60],[-300,1100,240],[-700,1100,300],[0,1500,320],[400,1600,260],[900,1800,200],[-500,1600,420],[-200,2000,480],[400,2100,450],[1200,2100,380],[-900,1900,520],[-1300,1400,420],[-1300,800,300],[1500,1900,300],[1500,1200,90],
  // Mareterra: low platform a few metres above the sea
@@ -42,7 +43,7 @@ function buildTerrain(){
  const idx=[];for(let j=0;j<TNZ-1;j++)for(let i=0;i<TNX-1;i++){const a=j*TNX+i,b=a+1,c=a+TNX,d=c+1;idx.push(a,c,b,b,c,d);}
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
  {const nm=g.attributes.normal;const cR=lin('#5f6d3c'),cS=lin('#4f6233');for(let k=0;k<TNX*TNZ;k++){const ny=nm.getY(k);if(TH[k]>1&&ny<.85&&TD[k]>HW+6){const t=clamp((.85-ny)/.2,0,1);const c=fbm(pos[k*3]*.02,pos[k*3+2]*.02,2)>.38?cS:cR;for(let q=0;q<3;q++)col[k*3+q]=lerp(col[k*3+q],c[q],t);}}}
- const tm=new THREE.MeshLambertMaterial({vertexColors:true});const TT=40;
+ TGEO=g; const tm=new THREE.MeshLambertMaterial({vertexColors:true});const TT=40;
  for(let j0=0;j0<TNZ-1;j0+=TT)for(let i0=0;i0<TNX-1;i0+=TT){const id=[];for(let j=j0;j<Math.min(j0+TT,TNZ-1);j++)for(let i=i0;i<Math.min(i0+TT,TNX-1);i++){const a=j*TNX+i,b=a+1,c=a+TNX,d=c+1;id.push(a,c,b,b,c,d);}
   const tg=new THREE.BufferGeometry();tg.setAttribute('position',g.attributes.position);tg.setAttribute('normal',g.attributes.normal);tg.setAttribute('color',g.attributes.color);tg.setIndex(id);
   const cx=TX0+(i0+TT/2)*TC,cz=TZ0+(j0+TT/2)*TC;let hy=0;for(let q=0;q<4;q++)hy=Math.max(hy,TH[Math.min(TNZ-1,j0+(q>>1)*TT)*TNX+Math.min(TNX-1,i0+(q&1)*TT)]);
@@ -84,7 +85,7 @@ const SINK={geom(){},quad(){},box(){},tri(){}};
 // ---------------------------------------------------------------- city from OpenStreetMap footprints
 let FAC=null;
 const facBatches=[0,1,2,3,4,5].map(()=>new Batch());
-const roofB=new Batch(),whiteB=new Batch(),metalB=new Batch(),concB=new Batch(),greenB=new Batch(),trunkB=new Batch(),yachtB=new Batch(),crowdB=new Batch(),flagB=new Batch(),teamB=new Batch(),poolB=new Batch();
+const roofB=new Batch(),whiteB=new Batch(),metalB=new Batch(),concB=new Batch(),greenB=new Batch(),trunkB=new Batch(),yachtB=new Batch(),crowdB=new Batch(),standB=new Batch(),flagB=new Batch(),teamB=new Batch(),poolB=new Batch();
 const CLASSIC=['#e8dfd0','#e6d6c2','#e2cfbb','#ebe3d6','#dccbb4','#d8cbb9','#e9ddd0','#e0c9bb','#e4d8c4','#d6c4ad','#e7d2c8','#efe8dc','#d9d1c4','#e3cfc0','#dcc4a6','#e8d5cf'].map(lin);
 const MODERN=['#eeeeec','#e4e5e4','#d9dbdc','#ecebe7','#e0ddd6','#d2d4d6'].map(lin);
 const ROOFS=['#9c6a55','#a57864','#8c8983','#a09c95','#7f7d78','#b3aea6'].map(lin);
@@ -257,11 +258,11 @@ function buildBarriers(SCH){
   if(!IS_MOBILE)for(const h of[.47,.81]){const q=P(i,side*(D0+.03),h);blks.push([q[0],q[1],q[2],PSI[i]]);}}
  const setR=(o,it)=>{o.position.set(it[0],it[1],it[2]);o.rotation.set(0,it[3],0);o.scale.set(1,1,1);};
  instTiled(postG,pm,posts,setR);if(blks.length)instTiled(blkG,pm,blks,setR);
- // sponsor-style boards hung on the catch fence above the rails, in alternating runs, colour by sector
+ // sponsor-style boards hung on the catch fence above the rails, in alternating runs, colour by sector (at Portier they sit low on the rails, so the sea shows over them)
  const bb={};for(const n of Object.keys(BOARD))bb[n]=new Batch();
  for(const sd of[0,1]){const side=sd?1:-1;let u=0;
   for(let i=0;i<N;i++){const blk=Math.floor((i+sd*7)/11);if(TUN[i]||blk%3===2||open[sd][i])continue;const j=mod(i+1);if(SCH[i]!==SCH[j])continue;const B=bb[SCH[i]];
-   if(sd===0&&STR[i])continue;const onWall=conc[sd][i];const lo=onWall?.12:1.0,hi=onWall?1.02:lo+.92;const bo=onWall?D0-.1:D0+.12;const a=P(i,side*bo,lo),b=P(j,side*bo,lo);const u0=(sd?-i:i)*DS/16,u1=(sd?-(i+1):(i+1))*DS/16;
+   if(sd===0&&STR[i])continue;const onWall=conc[sd][i],low=onWall||SCH[i]==='portier';const lo=low?.12:1.0,hi=onWall?1.02:low?.95:lo+.92;const bo=low?D0-.1:D0+.12;const a=P(i,side*bo,lo),b=P(j,side*bo,lo);const u0=(sd?-i:i)*DS/16,u1=(sd?-(i+1):(i+1))*DS/16;
    B.quad([a[0],a[1],a[2]],[b[0],b[1],b[2]],[b[0],b[1]-lo+hi,b[2]],[a[0],a[1]-lo+hi,a[2]],[-RXa[i]*side,0,-RZa[i]*side],[[u0,0],[u1,0],[u1,1],[u0,1]],[1,1,1]);}}
  // run-off asphalt and polystyrene/TecPro blocks where the chicane is open
  const sdWall=[];
@@ -301,7 +302,7 @@ function buildTrack(){
   for(const r of runs(pred)){const mid=mod(r[0]+(r[1]>>1));const bl=blueAt.some(c=>Math.min(mod(mid-c),mod(c-mid))<30);strip(r[0],r[1],i=>side<0?[P(i,-HW-.2,.045),P(i,-HW+1.1,.045)]:[P(i,HW-1.1,.045),P(i,HW+.2,.045)],bl?3:2,bl?kmatB:kmat);}}
  // barriers with ad boards
  const SCH=new Array(N).fill('green');
- for(const [a,b,n] of[[104,131,'green'],[131,145,'bluegreen'],[145,155,'navy'],[155,5,'black'],[5,19,'maroon'],[19,33,'black'],[33,39,'white'],[39,46,'navy'],[46,52,'blackw'],[52,58,'chicane'],[58,62,'darkgreen'],[62,68,'navy'],[68,92,'purple'],[92,98,'blackw'],[98,104,'yellow']])rangeIdx(cpIdx(a),cpIdx(b)).forEach(i=>SCH[i]=n);
+ for(const [a,b,n] of[[104,131,'green'],[131,145,'bluegreen'],[145,155,'navy'],[155,5,'black'],[5,19,'maroon'],[19,33,'black'],[33,39,'portier'],[39,46,'navy'],[46,52,'blackw'],[52,58,'chicane'],[58,62,'darkgreen'],[62,68,'navy'],[68,92,'purple'],[92,98,'blackw'],[98,104,'yellow']])rangeIdx(cpIdx(a),cpIdx(b)).forEach(i=>SCH[i]=n);
  buildBarriers(SCH);
  // foam tyre barriers (hairpin, chicane escape, Sainte Dévote) and striped bollards at Tabac
  const OR=lin('#f07a12'),YE=lin('#f2c200');
@@ -419,15 +420,16 @@ function buildTrack(){
 const MT=[]; // Mareterra park trees, planted after the city
 const STANDSIDE=[new Uint8Array(N),new Uint8Array(N)];
 const segScale=12; // metres of stand covered by one crowd texture width (about 20 people per row)
-function grandstand(i0,i1,side,off,rows,roof){const idx=rangeIdx(i0,i1);for(let q=-8;q<idx.length+8;q++){const ii=mod(i0+q);STANDSIDE[side>0?1:0][ii]=1;const c=P(ii,side*(HW+9));markDisc(c[0],c[2],9);}const step=2;const depth=rows*.95+1;
+// o (optional): base = height of the first step over the road (2.2 m), standing = crowd on its feet (standB, full figures on the step tops)
+function grandstand(i0,i1,side,off,rows,roof,o={}){const idx=rangeIdx(i0,i1);const CB=o.standing?standB:crowdB,NB=o.standing?2:8,CH=o.standing?1.75:.95,CY=o.standing?.45:.02;for(let q=-8;q<idx.length+8;q++){const ii=mod(i0+q);STANDSIDE[side>0?1:0][ii]=1;const c=P(ii,side*(HW+9));markDisc(c[0],c[2],9);}const step=2;const depth=rows*.95+1;
  for(let k=0;k+step<idx.length;k+=step){const ia=idx[k],ib=idx[k+step],im=idx[k+1];const th=PSI[im];const segL=DS*step/2+.05;const baseY=SY[im];
   const cc=P(im,side*(off+depth/2));tryRect(cc[0],cc[2],depth/2,segL,th,true);
-  const B0=baseY+2.2;const pc=P(im,side*(off+depth/2));concB.box(pc[0],pc[2],Math.min(baseY,heightAt(pc[0],pc[2]))-2,B0-.45,depth/2,segL,th,lin('#d8d4cb'));
+  const B0=baseY+(o.base??2.2);const pc=P(im,side*(off+depth/2));concB.box(pc[0],pc[2],Math.min(baseY,heightAt(pc[0],pc[2]))-2,B0-.45,depth/2,segL,th,lin('#d8d4cb'));
   for(let r=0;r<rows;r++){const c=P(im,side*(off+.5+r*.95));concB.box(c[0],c[2],B0-.45+r*.55,B0+r*.55,.475,segL,th,lin('#9aa2ab'));}
   // the seated crowd: one upright strip of people per step, facing the track, plus the front rail
   {const tn=[-side*RXa[im],0,-side*RZa[im]];const u0=k*DS/segScale,u1=(k+step)*DS/segScale;
-   for(let r=0;r<rows;r++){const d=side*(off+.42+r*.95),ys=B0-.45+r*.55+.02,A=P(ia,d),Bq=P(ib,d),band=((r*3+k)%8);const v0=1-(band+1)/8,v1=1-band/8;
-    crowdB.quad([A[0],ys,A[2]],[Bq[0],ys,Bq[2]],[Bq[0],ys+.95,Bq[2]],[A[0],ys+.95,A[2]],tn,[[u0,v0],[u1,v0],[u1,v1],[u0,v1]],[1,1,1]);}
+   for(let r=0;r<rows;r++){const d=side*(off+.42+r*.95),ys=B0-.45+r*.55+CY,A=P(ia,d),Bq=P(ib,d),band=((r*3+k)%NB);const v0=1-(band+1)/NB,v1=1-band/NB;
+    CB.quad([A[0],ys,A[2]],[Bq[0],ys,Bq[2]],[Bq[0],ys+CH,Bq[2]],[A[0],ys+CH,A[2]],tn,[[u0,v0],[u1,v0],[u1,v1],[u0,v1]],[1,1,1]);}
    const rl=P(im,side*(off-.05));metalB.box(rl[0],rl[2],B0+.55,B0+.6,.03,segL,th,lin('#b8bdc2'));if(k%2===0){const q=P(ia,side*(off-.05));metalB.box(q[0],q[2],B0-.45,B0+.6,.03,.03,th,lin('#b8bdc2'));}}
   const top=B0+rows*.55+3;if(roof==='canopy'){const rc=P(im,side*(off+depth/2+2));concB.box(rc[0],rc[2],B0+rows*.55+2.4,B0+rows*.55+3.1,depth/2+2.5,segL,th,lin('#9c9d9e'));}
   else if(roof==='scaffold'){const tube=lin('#9aa1a8'),tarp=lin('#24408a');
@@ -436,6 +438,23 @@ function grandstand(i0,i1,side,off,rows,roof){const idx=rangeIdx(i0,i1);for(let 
    const rl=P(im,side*(off+depth-.05));metalB.box(rl[0],rl[2],B0+rows*.55+.95,B0+rows*.55+1.0,.03,segL,th,tube);}
   else if(roof!==false){const rc=P(im,side*(off+depth/2));concB.box(rc[0],rc[2],top,top+.3,depth/2+.5,segL,th,lin('#e8e8e4'));}
   if(k%8===0)for(const f of[0,1]){const q=P(ia,side*(off+f*depth));if(roof!=='scaffold'&&roof!=='canopy')metalB.box(q[0],q[2],Math.min(baseY,heightAt(q[0],q[2]))-1,roof!==false?top:B0+rows*.55,.12,.12,th,lin('#aeb2b6'));}}}
+
+// Portier, open sea view: from the cockpit after the bridge the simulator shows open sea to the horizon over the barrier ahead, with the
+// cruise ship and yachts. Two things closed it: the low ground of Mareterra in front of the cars and the hills across the bay, 1-1.5 km out.
+// Both are sunk under the water here: inside the cleared view cone (PORTIER_CLEAR[2], where no tree or building is ever built) once
+// clear of the road at the right-hander, and in the far sector (no OSM building or tree there up to 20 degrees left of the view).
+// It only lowers TH, uses no R() and runs once all the trees and buildings are placed (just before the harbour), so the seeded layout stays.
+const SEA_SUNK=-7;
+function openSeaView(){const c=cpIdx(35),pos=TGEO.attributes.position,col=TGEO.attributes.color,rock=lin('#8a857a');let n=0;
+ const zone=new Uint8Array(N);rangeIdx(cpIdx(33),mod(cpIdx(38)+3)).forEach(i=>zone[i]=1);const cone=PORTIER_CLEAR[2];
+ for(let k=0;k<TNX*TNZ;k++){if(TW[k])continue;const X=pos.getX(k),Z=pos.getZ(k),dx=X-SX[c],dz=Z-SZ[c];const f=dx*TXa[c]+dz*TZa[c],r=dx*RXa[c]+dz*RZa[c];if(f<15)continue;
+  const L=Math.hypot(f,r),az=Math.atan2(-r,f)*180/Math.PI; // az > 0: left of the view
+  let w=sstep(780,1020,L)*(1-sstep(15,20,az))*sstep(-62,-52,az);
+  if(w<1&&az<11&&pip(cone,X,Z)){const nr=nearest(X,Z,95);const near=!nr?1:zone[nr.i]?sstep(HW+7,HW+18,nr.d):sstep(60,90,nr.d);w=Math.max(w,near*(1-sstep(5,10,az)));}
+  if(w<=0)continue;
+  TH[k]=lerp(TH[k],SEA_SUNK,w);pos.setY(k,TH[k]);const t=sstep(0,.25,w);col.setXYZ(k,lerp(col.getX(k),rock[0],t),lerp(col.getY(k),rock[1],t),lerp(col.getZ(k),rock[2],t));n++;}
+ pos.needsUpdate=col.needsUpdate=true;TGEO.computeVertexNormals();console.info('Portier sea view: '+n+' terrain points lowered');}
+const seaXZ=(x,z)=>isWaterXZ(x,z)||heightAt(x,z)<SEA_SUNK+3; // water, or ground sunk under it by openSeaView
 
 function harborAndSea(){
  const wn=waterNormal();wn.repeat.set(160,160);
@@ -464,8 +483,8 @@ function harborAndSea(){
      k+=Math.max(2,Math.round((W+qr(2.5,5))/DS));continue;}}
    k+=2;}}
  // a large yacht at anchor offshore, broadside to the view from the exit of Portier
- {const i=cpIdx(33);for(let f=380;f<=600;f+=20){const X=SX[i]+TXa[i]*f+RXa[i]*60,Z=SZ[i]+TZa[i]*f+RZa[i]*60;const L=120,W=L*.15,th=Math.atan2(RXa[i],RZa[i]),c=Math.cos(th),s=Math.sin(th);let ok=true;
-   for(const q of[[0,L/2+10],[0,-L/2-10],[W/2+10,0],[-W/2-10,0]])if(!isWaterXZ(X+c*q[0]+s*q[1],Z-s*q[0]+c*q[1])){ok=false;break;}
+ {const i=cpIdx(33);for(let f=460;f<=900;f+=20){const X=SX[i]+TXa[i]*f+RXa[i]*60,Z=SZ[i]+TZa[i]*f+RZa[i]*60;const L=120,W=L*.15,th=Math.atan2(RXa[i],RZa[i]),c=Math.cos(th),s=Math.sin(th);let ok=true;
+   for(const q of[[0,L/2+10],[0,-L/2-10],[W/2+10,0],[-W/2-10,0]])if(!seaXZ(X+c*q[0]+s*q[1],Z-s*q[0]+c*q[1])){ok=false;break;}
    // cruise-ship profile: long block of equal decks with window bands, wheelhouse forward, funnel aft
    if(ok){const {hullH}=yachtAt(X,Z,th,L,W,white,0);let y=hullH*.65;const sup=(o,y0,y1,hw,hl,col)=>yachtB.box(X+s*o,Z+c*o,y0,y1,hw,hl,th,col);
     for(let d=0;d<6;d++){sup(-L*.05,y,y+2.8,W*.46,L*.34,white);sup(-L*.05,y+1.0,y+1.9,W*.46+.04,L*.34+.04,glassC);y+=2.8;}
@@ -482,9 +501,9 @@ function harborAndSea(){
   if(L<24&&R()<.4)metalB.box(X,Z,hullH*.6,hullH*.6+L*.9,.08,.08,th,lin('#dcdcdc'));}
  // yachts at anchor off Portier, in the view that opens up after the bridge (own generator, so the rest keeps its layout)
  {const Q=mulberry(1955),c=cpIdx(34);let n=0;
-  for(let t=0;t<120&&n<8;t++){const a=-.5+Q()*.68,dist=240+Q()*560,L=16+Q()*30,W=L*.22,th=Q()*TAU;const ca=Math.cos(a),sa=Math.sin(a);
+  for(let t=0;t<120&&n<8;t++){const a=-.5+Q()*.68,dist=200+Q()*520,L=16+Q()*30,W=L*.22,th=Q()*TAU;const ca=Math.cos(a),sa=Math.sin(a);
    const X=SX[c]+(TXa[c]*ca-RXa[c]*sa)*dist,Z=SZ[c]+(TZa[c]*ca-RZa[c]*sa)*dist;const cs=Math.cos(th),sn=Math.sin(th);let ok=true;
-   for(const q of[[0,L/2+6],[0,-L/2-6],[W/2+6,0],[-W/2-6,0]])if(!isWaterXZ(X+cs*q[0]+sn*q[1],Z-sn*q[0]+cs*q[1])){ok=false;break;}
+   for(const q of[[0,L/2+6],[0,-L/2-6],[W/2+6,0],[-W/2-6,0]])if(!seaXZ(X+cs*q[0]+sn*q[1],Z-sn*q[0]+cs*q[1])){ok=false;break;}
    if(ok)for(const p of placed)if(Math.hypot(p[0]-X,p[1]-Z)<(p[2]+L)/2+8){ok=false;break;}
    if(!ok)continue;placed.push([X,Z,L]);n++;
    const {hullH,top}=yachtAt(X,Z,th,L,W,Q()<.2?navy:white,L>34?3:2,2.2);yachtB.box(X-sn*L*.38,Z-cs*L*.38,hullH*.64,hullH*.66,W*.42,L*.1,th,teak);
@@ -534,7 +553,11 @@ function buildPortier(){
  litB.mesh(new THREE.MeshBasicMaterial({color:new THREE.Color(1.5,1.5,1.3),toneMapped:false}),false);
  banB.mesh(new THREE.MeshLambertMaterial({map:bannerTex('#f6f6f4','#1d1d1f','MONTE-CARLO')}),false);
  // small open stand on the left after the bridge
- grandstand(PS_STAND[0],PS_STAND[1],-1,HW+5,6,'scaffold');
+ // low terraces with the crowd on its feet (mostly orange and red), and a row standing on the pavement against the fence
+ grandstand(PS_STAND[0],PS_STAND[1],-1,HW+5,6,'scaffold',{base:.7,standing:true});
+ {const r=rangeIdx(PS_STAND[0],mod(PS_STAND[1]+2));for(let k=0;k+2<r.length;k+=2){const ia=r[k],ib=r[k+2],d=-(HW+1.4+(k%4?.35:0)),A=P(ia,d),B=P(ib,d),ya=SY[ia]+.15,yb=SY[ib]+.15;
+   const u0=k*DS/segScale+.37,u1=(k+2)*DS/segScale+.37,band=(k>>1)%2,v0=1-(band+1)/2,v1=1-band/2;
+   standB.quad([A[0],ya,A[2]],[B[0],yb,B[2]],[B[0],yb+1.75,B[2]],[A[0],ya+1.75,A[2]],[RXa[ia],0,RZa[ia]],[[u0,v0],[u1,v0],[u1,v1],[u0,v1]],[1,1,1]);}}
  // marshal tower on the outside of the right-hander before the tunnel
  {const i=mod(cpIdx(37)+1),p=P(i,-(HW+3.6)),y=SY[i]+.15,th=PSI[i],H=5.6,tube=lin('#9aa1a8');
   for(const a of[-1,1])for(const b of[-1,1]){const x=p[0]+(RXa[i]*a+TXa[i]*b)*.8,z=p[2]+(RZa[i]*a+TZa[i]*b)*.8;metalB.box(x,z,y-.3,y+H+1.1,.05,.05,th,tube);}
@@ -574,6 +597,7 @@ function buildWorld(){
  for(const [x,z] of MT)tree(x,z,.9+hash2(Math.round(x),Math.round(z))*.6);
  // trees in the real parks and gardens
  for(const t of DATA.trees){const x=t[0],z=-t[1];const o=occI(x,z);if(o<0||OCC[o])continue;if(maskAt(GREEN,x,z)&&Math.hypot(x,z)<700&&R()<.18)palm(x,z,rr(6,11));else tree(x,z,rr(.9,1.5));}
+ openSeaView();
  harborAndSea();
  buildPortier();
  whiteB.mesh(new THREE.MeshLambertMaterial({vertexColors:true}));metalB.mesh(new THREE.MeshStandardMaterial({vertexColors:true,metalness:.6,roughness:.4}));
@@ -583,6 +607,7 @@ function buildWorld(){
   const fm=frondB.mesh(new THREE.MeshLambertMaterial({map:ft,vertexColors:true,alphaTest:.4,side:THREE.DoubleSide}));fm.customDepthMaterial=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:ft,alphaTest:.4});}
  flagB.mesh(new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}),false);
  {const ct=crowdTex();const m=crowdB.mesh(new THREE.MeshLambertMaterial({map:ct,vertexColors:true,alphaTest:.5,side:THREE.DoubleSide}));m.customDepthMaterial=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:ct,alphaTest:.5});}
+ if(standB.p.length){const st=standTex();const m=standB.mesh(new THREE.MeshLambertMaterial({map:st,vertexColors:true,alphaTest:.5,side:THREE.DoubleSide}));m.customDepthMaterial=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:st,alphaTest:.5});}
  buildGantry();}
 
 // ---------------------------------------------------------------- start gantry
