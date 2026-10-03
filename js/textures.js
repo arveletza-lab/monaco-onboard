@@ -86,7 +86,7 @@ function shopTex(){const W=512,H=256,c=canvas(W,H),g=c.getContext('2d');g.fillSt
  for(let i=0;i<5000;i++){g.fillStyle=`rgba(60,45,30,${Math.random()*.06})`;g.fillRect(Math.random()*W,Math.random()*H,3,3);}
  const aw=['#6b2230','#2d4a3a','#1f2d4d','#7a6a52','#3b3b3b'];
  for(let k=0;k<3;k++){const x=k*W/3+18,w=W/3-36,top=60;g.fillStyle='rgba(0,0,0,.3)';g.fillRect(x-4,top-4,w+8,H-top);const gr=g.createLinearGradient(0,top,0,H);gr.addColorStop(0,'#3c444c');gr.addColorStop(1,'#15181c');g.fillStyle=gr;g.fillRect(x,top,w,H-top-12);g.fillStyle='rgba(255,240,210,.12)';g.fillRect(x+8,top+30,w-16,70);g.fillStyle='#d8d2c6';g.fillRect(x+w/2-3,top,6,H-top-12);
-  if(Math.random()<.6){g.fillStyle=pick(aw);g.beginPath();g.moveTo(x-8,top-6);g.lineTo(x+w+8,top-6);g.lineTo(x+w+18,top+34);g.lineTo(x-18,top+34);g.fill();g.fillStyle='rgba(255,255,255,.15)';for(let j=x-10;j<x+w+10;j+=24)g.fillRect(j,top-4,10,36);}}
+  if(Math.random()<.6){g.fillStyle=aw[Math.floor(Math.random()*aw.length)];g.beginPath();g.moveTo(x-8,top-6);g.lineTo(x+w+8,top-6);g.lineTo(x+w+18,top+34);g.lineTo(x-18,top+34);g.fill();g.fillStyle='rgba(255,255,255,.15)';for(let j=x-10;j<x+w+10;j+=24)g.fillRect(j,top-4,10,36);}}
  g.fillStyle='#cfc7b8';g.fillRect(0,H-12,W,12);g.fillStyle='#f1ede6';g.fillRect(0,0,W,16);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(0,16,W,4);
  return tex(c);}
 function leafTex(){const c=canvas(256,256),g=c.getContext('2d');g.clearRect(0,0,256,256);const cs=['#2f4a22','#3a5a28','#46692f','#557a37','#2a3f1e','#5f8540'];

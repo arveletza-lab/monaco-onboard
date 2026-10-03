@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Garage — elegir vehículo</title>
+<style>
+ :root{--ink:#070a0f;--fg:#f4f2ee;--muted:#9aa4af;--line:rgba(255,255,255,.13);--display:"Saira Extra Condensed","Arial Narrow",Impact,sans-serif;--ui:"Saira Semi Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;color-scheme:dark;}
+ html,body{height:100%;margin:0;background:var(--ink);color:var(--fg);overflow:hidden;font-family:var(--ui);}
+ #app{position:fixed;inset:0;}
+ h1{position:fixed;left:max(16px,4vw);top:18px;margin:0;font-family:var(--display);font-weight:800;font-size:34px;letter-spacing:.08em;text-transform:uppercase;transform:skewX(-8deg);}
+ h1 small{display:block;font-family:var(--ui);font-weight:500;font-size:13px;letter-spacing:.06em;color:var(--muted);text-transform:none;transform:none;}
+ .lbl{position:fixed;transform:translate(-50%,0);font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:.1em;text-transform:uppercase;padding:4px 14px;border:1px solid var(--line);background:rgba(9,13,19,.74);white-space:nowrap;pointer-events:none;}
+ .lbl i{display:inline-block;width:10px;height:10px;margin-right:8px;transform:skewX(-8deg);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<h1>Elegí tu vehículo<small>Vista previa del garage (prototipo)</small></h1>
+<script src="../../vendor/three.min.js"></script>
+<script type="module" src="garage.js"></script>
+</body>
+</html>

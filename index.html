@@ -52,6 +52,7 @@
 
 <div id="menu">
   <div class="card">
+    <div class="colA">
     <div class="eyebrow"><span class="flag"><i></i><i></i></span>Circuit de Monaco · Monte-Carlo</div>
     <h1>Mónaco<span>Onboard</span></h1>
     <div class="facts">
@@ -61,6 +62,17 @@
     </div>
     <p class="lede">Una vuelta tranquila por el trazado real del Principado, desde el casco: la subida de Sainte Dévote al Casino, la bajada a la horquilla, el túnel junto al mar y el puerto lleno de yates. Calles, edificios y tribunas en su lugar real. Manejo sencillo, sin trompos.</p>
     <div class="namefield"><label for="pname">Tu nombre de piloto</label><input id="pname" type="text" maxlength="16" autocomplete="nickname" placeholder="Ej. PILOTO 1"></div>
+    </div><div class="colB">
+    <div class="board vehpick">
+      <h3 id="vehTitle">Elegí tu vehículo<small>Misma física para los tres</small></h3>
+      <div class="vehgrid" role="radiogroup" aria-labelledby="vehTitle">
+        <canvas id="vehCanvas" aria-hidden="true"></canvas>
+        <button type="button" class="veh" role="radio" aria-checked="false" data-veh="formula" style="--acc:#e2202c;--acc-ink:#fff"><span class="vimg"></span><span class="vname"><i></i>Fórmula</span></button>
+        <button type="button" class="veh" role="radio" aria-checked="false" data-veh="tractor" style="--acc:#ffc53d;--acc-ink:#15100a"><span class="vimg"></span><span class="vname"><i></i>Tractor</span></button>
+        <button type="button" class="veh" role="radio" aria-checked="false" data-veh="nightcar" style="--acc:#2a6cff;--acc-ink:#fff"><span class="vimg"></span><span class="vname"><i></i>Bólido nocturno</span></button>
+      </div>
+      <div id="vehNote" class="legend" hidden>Si cambiás de vehículo, al continuar la vuelta arranca de nuevo desde la grilla.</div>
+    </div>
     <div class="opts">
       <label class="opt"><input type="checkbox" id="optBrake" checked> Frenado asistido</label>
       <label class="opt"><input type="checkbox" id="optSteer" checked> Dirección asistida</label>
@@ -71,7 +83,7 @@
       <label class="sel">Calidad gráfica<select id="optQ"><option value="2">Alta</option><option value="1">Media</option><option value="0">Baja</option></select></label>
     </div>
     <div class="btnrow"><button id="go" disabled>Salir a pista</button><button id="restart" type="button" hidden>Reiniciar desde la grilla</button></div>
-    <div class="board"><h3>Tus mejores vueltas</h3><table class="rank" id="rankMenu"></table><div class="legend">A = vuelta con ayudas de manejo.</div></div>
+    <div class="board"><h3>Tus mejores vueltas</h3><table class="rank" id="rankMenu"></table><div class="legend">A = con ayudas de manejo · F Fórmula · T Tractor · N Bólido nocturno.</div></div>
     <div id="loading">Construyendo el Principado…</div>
     <div id="perfInfo" class="hint" hidden></div>
     <div class="ctrls">
@@ -81,6 +93,7 @@
       <kbd>C · R · M · P</kbd><span>Cámara · volver a pista · sonido · pausa</span>
     </div>
     <p class="credits">Datos del mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">colaboradores de OpenStreetMap</a> (ODbL) · Trazado: <a href="https://github.com/bacinger/f1-circuits" target="_blank" rel="noopener">bacinger/f1-circuits</a> (MIT) · Proyecto no oficial, sin relación con la Fórmula 1.</p>
+    </div>
   </div>
 </div>
 

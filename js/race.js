@@ -46,7 +46,7 @@ let player='';const LB={rows:[]};
 function setPlayer(n){player=n;}
 function cleanName(v){return String(v||'').replace(/[^\p{L}\p{N} ._-]/gu,'').trim().slice(0,16);}
 // Storage of the laps. Everything else goes through these two, so a shared ranking only has to replace them:
-// loadLaps() resolves to every saved lap; saveLap(row) stores one ({name, ms, s:[ms,ms,ms], assist, at}).
+// loadLaps() resolves to every saved lap; saveLap(row) stores one ({name, ms, s:[ms,ms,ms], assist, veh, at}).
 async function loadLaps(){try{const v=JSON.parse(localStorage.getItem('mc_laps')||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}}
 async function saveLap(row){const r=await loadLaps();r.push(row);r.sort((a,b)=>a.ms-b.ms);try{localStorage.setItem('mc_laps',JSON.stringify(r.slice(0,200)));}catch(e){}}
 const sameName=(r,name)=>String(r.name).toUpperCase()===String(name||'').toUpperCase();
@@ -56,14 +56,17 @@ function lapsOf(rows,name){const mine=rows.filter(r=>typeof r.ms==='number'&&r.n
  const no=new Map(mine.slice().sort((a,b)=>String(a.at).localeCompare(String(b.at))).map((r,k)=>[r,k+1]));
  return mine.sort((a,b)=>a.ms-b.ms).map(r=>({r,no:no.get(r)}));}
 function shortDate(iso){const d=new Date(iso);return isNaN(d)?'':d.toLocaleDateString('es',{day:'2-digit',month:'2-digit',year:'2-digit'});}
-function renderRank(el,name){const laps=name?lapsOf(LB.rows,name):[];el.textContent='';if(!laps.length){const tr=document.createElement('tr');const td=document.createElement('td');td.className='empty';td.colSpan=4;td.textContent='Todavía no tenés vueltas con este nombre.';tr.appendChild(td);el.appendChild(tr);return;}
+function renderRank(el,name){const laps=name?lapsOf(LB.rows,name):[];el.textContent='';if(!laps.length){const tr=document.createElement('tr');const td=document.createElement('td');td.className='empty';td.colSpan=5;td.textContent='Todavía no tenés vueltas con este nombre.';tr.appendChild(td);el.appendChild(tr);return;}
  laps.slice(0,10).forEach(({r,no},k)=>{const tr=document.createElement('tr');if(k===0)tr.className='top';
-  for(const [c,v] of[['p','V'+no],['n',shortDate(r.at)],['a',r.assist?'A':''],['t',fmt(r.ms/1000)]]){const td=document.createElement('td');td.className=c;td.textContent=v;if(c==='p')td.title='Vuelta '+no;if(c==='a'&&r.assist)td.title='con ayudas de manejo';tr.appendChild(td);}el.appendChild(tr);});}
+  const vh=VEH_TAG[r.veh];
+  for(const [c,v] of[['p','V'+no],['n',shortDate(r.at)],['vh',vh?vh[0]:''],['a',r.assist?'A':''],['t',fmt(r.ms/1000)]]){const td=document.createElement('td');td.className=c;td.textContent=v;if(c==='p')td.title='Vuelta '+no;if(c==='a'&&r.assist)td.title='con ayudas de manejo';if(c==='vh'&&vh)td.title=vh[1];tr.appendChild(td);}el.appendChild(tr);});}
+// vehicle of each lap in the tables: one discreet letter (laps saved before the vehicle choice show nothing)
+const VEH_TAG={formula:['F','Fórmula'],tractor:['T','Tractor'],nightcar:['N','Bólido nocturno']};
 function renderBoards(){renderRank($('rankMenu'),cleanName($('pname').value));renderRank($('rankFinish'),player);}
 async function initBoard(){LB.rows=await loadLaps();renderBoards();}
 async function finishRace(t){race.finished=true;const ms=Math.round(t*1000);
  if(car.invalid){renderSecInto($('secFin'),false);$('fWho').textContent=(player||'Piloto')+' · vuelta anulada';$('fTime').textContent=fmt(t);$('fTime').style.color='var(--muted)';
-  $('fPos').textContent='Saliste de los límites de pista con las cuatro ruedas, así que la vuelta no vale.';$('saveNote').textContent='El tiempo no se guarda.';renderBoards();setTimeout(()=>{$('finish').hidden=false;$('fAgain').focus();},1200);return;}const row={name:player||'PILOTO',ms,assist:!!(opt.brake||opt.steer),at:new Date().toISOString()};if(SEC.t.every(v=>v!=null))row.s=SEC.t.map(v=>Math.round(v*1000));renderSecInto($('secFin'),false);
+  $('fPos').textContent='Saliste de los límites de pista con las cuatro ruedas, así que la vuelta no vale.';$('saveNote').textContent='El tiempo no se guarda.';renderBoards();setTimeout(()=>{$('finish').hidden=false;$('fAgain').focus();},1200);return;}const row={name:player||'PILOTO',ms,assist:!!(opt.brake||opt.steer),veh:opt.vehicle||'formula',at:new Date().toISOString()};if(SEC.t.every(v=>v!=null))row.s=SEC.t.map(v=>Math.round(v*1000));renderSecInto($('secFin'),false);
  const prev=bestPerName(LB.rows).find(r=>sameName(r,row.name));const overPrev=bestPerName(LB.rows)[0];
  $('fWho').textContent=(player||'Piloto')+' · bandera a cuadros';$('fTime').textContent=fmt(t);$('fTime').style.color=(!overPrev||ms<=overPrev.ms)?'var(--sec-purple)':(!prev||ms<prev.ms)?'var(--sec-green)':'var(--sec-yellow)';$('saveNote').textContent='';
  let note='Tiempo guardado en este dispositivo.';

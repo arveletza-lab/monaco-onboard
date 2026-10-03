@@ -39,9 +39,10 @@ Mónaco Onboard: simulador web en Three.js r128 (vendor/three.min.js, global THR
 
 ## Videos de referencia (carpeta _videos/, no se sube a GitHub)
 - Usar siempre tools/qa/frame para sacar cuadros, que ya conoce los nombres de archivo.
-- "sim" = video del simulador ("@citrix Virtual Lap_ Max Verstappen laps the Monaco Grand Prix.mp4"): 1280x720, la imagen del juego ocupa SOLO la franja superior (crop=1280:446:0:0). Intro hasta ~5 s; vuelta de ~5 s a ~82 s. Cámara cockpit (como la cámara 0). Es la referencia principal para el entorno.
+- "sim" = video del simulador ("@citrix Virtual Lap_ Max Verstappen laps the Monaco Grand Prix.mp4"): 1280x720, la imagen del juego ocupa SOLO la franja superior (crop=1280:446:0:0). Intro hasta ~6,5 s; vuelta de ~6,5 s a ~82,5 s. Cámara cockpit (como la cámara 0). Es la referencia principal para el entorno.
 - "real" = vuelta real ("Max Verstappen's Incredible Pole Lap _ 2023 Monaco Grand Prix _ Pirelli.mp4"): 1280x720, imagen completa, cámara sobre el casco (como la cámara 1), con gráficos de TV superpuestos. Referencia para el auto y los colores reales.
-- Índice aproximado de "sim" (segundos): largada/recta 75–82 y 5–7; Sainte Dévote 7–10; Beau Rivage 10–14; Massenet/Casino 14–18; Mirabeau y horquilla 18–27; Portier 28–34; túnel 34–50; salida del túnel 49–53; Nouvelle Chicane 52–55; Tabac 55–57; Piscine 57–66; Rascasse 66–72; Anthony Noghès 72–75.
+- Índice de "sim" (segundos, medido): largada/recta 75–82,5 y 6,5–10; Sainte Dévote 10–12,5; Beau Rivage 12,5–16; Massenet 16–19,5; Casino 19,5–22,5; Mirabeau Haute 22,5–26; horquilla 26–31; Mirabeau Bas 31–34; bajada a Portier 34–39,5; puente sobre la pista ~40,8; Portier y recta al túnel 39,5–44,6; túnel 44,6–49,5; salida del túnel 49,5–52; Nouvelle Chicane 52–55; Tabac 55–56,5; Piscine 56,5–66; Rascasse 66–71,5; Anthony Noghès 71,5–75.
+- "real": cronómetro de vuelta ≈ segundo de video − 5,3.
 - El índice exacto de ambos videos vive en docs/referencias.md (lo mantiene el agente referencia-video; ese archivo sí se sube).
 
 ## Subagentes
